@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { ThemeStore, ThemeStoreOptions } from '.'
+import type { ThemeConfig, ThemeStore } from '.'
 
 function noop() {}
 const emptyObject = {}
@@ -14,7 +14,7 @@ const emptyStore = {
 	subscribe: () => noop,
 }
 
-export function usePalettez<T extends ThemeStoreOptions['config']>(
+export function usePalettez<T extends ThemeConfig>(
 	getStore: () => ThemeStore<T>,
 	{ initOnMount = false } = {},
 ) {
@@ -34,11 +34,7 @@ export function usePalettez<T extends ThemeStoreOptions['config']>(
 		subscribe,
 	} = isMounted ? getStore() : (emptyStore as unknown as ThemeStore<T>)
 
-	const themes = React.useSyncExternalStore(
-		React.useCallback((callback) => subscribe(callback), [subscribe]),
-		getThemes,
-		getThemes,
-	)
+	const themes = React.useSyncExternalStore(subscribe, getThemes, getThemes)
 
 	return {
 		themes,

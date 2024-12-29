@@ -10,7 +10,7 @@ export {
 }
 
 type StorageAdapter = {
-	getItem: (key: string) => object | null | Promise<object | null>
+	getItem: (key: string) => object | Promise<object>
 	setItem: (key: string, value: object) => void | Promise<void>
 	// removeItem: (key: string) => void | Promise<void>
 	broadcast?: (key: string, value: object) => void
@@ -30,9 +30,9 @@ const localStorageAdapter: StorageAdapterCreator<never> = () => {
 		return {
 			getItem: (key: string) => {
 				try {
-					return JSON.parse(window.localStorage.getItem(key) || 'null')
+					return JSON.parse(window.localStorage.getItem(key) || '{}')
 				} catch {
-					return null
+					return {}
 				}
 			},
 
@@ -50,9 +50,11 @@ const localStorageAdapter: StorageAdapterCreator<never> = () => {
 				window.addEventListener(
 					'storage',
 					(e) => {
-						if (e.storageArea !== localStorage) return
-						const persistedThemes = JSON.parse(e.newValue || 'null')
-						cb(e.key, persistedThemes)
+						if (e.storageArea !== window.localStorage) return
+						try {
+							const persistedValue = JSON.parse(e.newValue || 'null')
+							cb(e.key, persistedValue)
+						} catch {}
 					},
 					{
 						signal: AbortSignal.any([
@@ -75,9 +77,9 @@ const sessionStorageAdapter: StorageAdapterCreator<never> = () => {
 		return {
 			getItem: (key: string) => {
 				try {
-					return JSON.parse(window.sessionStorage.getItem(key) || 'null')
+					return JSON.parse(window.sessionStorage.getItem(key) || '{}')
 				} catch {
-					return null
+					return {}
 				}
 			},
 
@@ -95,9 +97,11 @@ const sessionStorageAdapter: StorageAdapterCreator<never> = () => {
 				window.addEventListener(
 					'storage',
 					(e) => {
-						if (e.storageArea !== sessionStorage) return
-						const persistedThemes = JSON.parse(e.newValue || 'null')
-						cb(e.key, persistedThemes)
+						if (e.storageArea !== window.sessionStorage) return
+						try {
+							const persistedValue = JSON.parse(e.newValue || 'null')
+							cb(e.key, persistedValue)
+						} catch {}
 					},
 					{
 						signal: AbortSignal.any([
@@ -122,7 +126,7 @@ const memoryStorageAdapter: StorageAdapterCreator<never> = () => {
 
 		return {
 			getItem: (key: string) => {
-				return storage.get(key) || null
+				return storage.get(key) || {}
 			},
 
 			setItem: (key: string, value: object) => {

@@ -1,8 +1,10 @@
 {
 	"name": "palettez",
-	"version": "0.0.19",
+	"version": "0.0.20",
 	"description": "Palettez",
-	"keywords": ["theming"],
+	"keywords": [
+		"theming"
+	],
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/universse/palettez.git"
@@ -25,8 +27,7 @@
 			"default": "./dist/react.js"
 		},
 		"./raw": {
-			"types": "./palettez.min.txt.d.ts",
-			"import": "./dist/palettez.min.txt"
+			"import": "./dist/palettez.min.js"
 		},
 		"./global": {
 			"types": "./global.d.ts"
@@ -35,7 +36,11 @@
 	"jsdelivr": "./dist/palettez.min.js",
 	"unpkg": "./dist/palettez.min.js",
 	"types": "./dist/index.d.ts",
-	"files": ["dist", "global.d.ts", "palettez.min.txt.d.ts"],
+	"files": [
+		"dist",
+		"global.d.ts",
+		"palettez.min.txt.d.ts"
+	],
 	"scripts": {
 		"build": "tsup",
 		"dev": "tsup --watch",
@@ -43,18 +48,18 @@
 		"test": "vitest --reporter=basic --disable-console-intercept"
 	},
 	"devDependencies": {
-		"@size-limit/preset-small-lib": "11.1.4",
+		"@size-limit/preset-small-lib": "11.1.6",
 		"@types/react": "18.3.4",
-		"jsdom": "25.0.0",
+		"jsdom": "25.0.1",
 		"react": "18.3.1",
 		"react-dom": "18.3.1",
-		"size-limit": "11.1.4",
-		"tsup": "8.2.4",
+		"size-limit": "11.1.6",
+		"tsup": "8.3.5",
 		"typescript": "5.5.4",
-		"vitest": "2.0.5"
+		"vitest": "2.1.8"
 	},
 	"peerDependencies": {
-		"react": "^18.0.0"
+		"react": "^18.0.0 || ^19.0.0"
 	},
 	"peerDependenciesMeta": {
 		"react": {

@@ -36,7 +36,7 @@ type Themes<T extends ThemeConfig> = {
 	[K in keyof T]: T[K] extends Array<infer U>
 		? U extends string
 			? U
-			: U extends { value: string }
+			: U extends ThemeOption
 				? U['value']
 				: never
 		: never
@@ -146,9 +146,13 @@ class ThemeStore<T extends ThemeConfig> {
 	restore = async (): Promise<void> => {
 		const persistedThemes = await this.#storage.getItem(this.#options.key)
 
-		this.#setThemesAndNotify(
-			(persistedThemes as Themes<T>) || this.#defaultThemes,
-		)
+		for (const key of Object.keys(persistedThemes)) {
+			if (!Object.hasOwn(this.#defaultThemes, key)) {
+				delete persistedThemes[key as keyof typeof persistedThemes]
+			}
+		}
+
+		this.#setThemesAndNotify({ ...this.#defaultThemes, ...persistedThemes })
 	}
 
 	// clear = async (): Promise<void> => {
@@ -277,14 +281,12 @@ function createThemeStore<T extends ThemeStoreOptions>(
 	return themeStore
 }
 
-function getThemeStore<T extends ThemeStoreOptions>(
-	key?: string,
-): ThemeStore<T['config']> {
+function getThemeStore<T extends ThemeConfig>(key?: string): ThemeStore<T> {
 	const storeKey = key || packageName
 	if (!registry.has(storeKey)) {
 		throw new Error(
 			`[${packageName}] Theme store with key '${storeKey}' could not be found. Please run \`createThemeStore\` with key '${storeKey}' first.`,
 		)
 	}
-	return registry.get(storeKey)!
+	return registry.get(storeKey)! as ThemeStore<T>
 }
