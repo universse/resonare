@@ -34,7 +34,11 @@ export function usePalettez<T extends ThemeConfig>(
 		subscribe,
 	} = isMounted ? getStore() : (emptyStore as unknown as ThemeStore<T>)
 
-	const themes = React.useSyncExternalStore(subscribe, getThemes, getThemes)
+	const themes = React.useSyncExternalStore(
+		React.useCallback((callback) => subscribe(callback), [subscribe]),
+		getThemes,
+		getThemes,
+	)
 
 	return {
 		themes,

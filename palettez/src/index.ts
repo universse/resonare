@@ -1,4 +1,3 @@
-import { name as packageName } from '../package.json'
 import {
 	type StorageAdapter,
 	type StorageAdapterCreate,
@@ -21,6 +20,8 @@ export {
 	type StorageAdapterCreator,
 	// type Themes,
 }
+
+const PACKAGE_NAME = 'palettez'
 
 type ThemeOption = {
 	value: string
@@ -87,7 +88,7 @@ class ThemeStore<T extends ThemeConfig> {
 	#abortController = new AbortController()
 
 	constructor({
-		key = packageName,
+		key = PACKAGE_NAME,
 		config,
 		initialThemes = {},
 		storage = localStorageAdapter(),
@@ -178,7 +179,7 @@ class ThemeStore<T extends ThemeConfig> {
 	sync = (): (() => void) => {
 		if (!this.#storage.watch) {
 			throw new Error(
-				`[${packageName}] No watch method was provided for storage.`,
+				`[${PACKAGE_NAME}] No watch method was provided for storage.`,
 			)
 		}
 
@@ -226,7 +227,7 @@ class ThemeStore<T extends ThemeConfig> {
 
 		if (!isClient) {
 			console.warn(
-				`[${packageName}] Option with key "media" cannot be resolved in server environment.`,
+				`[${PACKAGE_NAME}] Option with key "media" cannot be resolved in server environment.`,
 			)
 			return option.value
 		}
@@ -272,21 +273,29 @@ const registry = new Map<string, ThemeStore<ThemeConfig>>()
 function createThemeStore<T extends ThemeStoreOptions>(
 	options: T,
 ): ThemeStore<T['config']> {
-	const storeKey = options.key || packageName
+	const storeKey = options.key || PACKAGE_NAME
+
 	if (registry.has(storeKey)) {
 		registry.get(storeKey)!.destroy()
 	}
+
 	const themeStore = new ThemeStore<T['config']>(options)
+
 	registry.set(storeKey, themeStore)
+
 	return themeStore
 }
 
-function getThemeStore<T extends ThemeConfig>(key?: string): ThemeStore<T> {
-	const storeKey = key || packageName
+function getThemeStore<T extends string = typeof PACKAGE_NAME>(key?: T) {
+	const storeKey = key || PACKAGE_NAME
+
 	if (!registry.has(storeKey)) {
 		throw new Error(
-			`[${packageName}] Theme store with key '${storeKey}' could not be found. Please run \`createThemeStore\` with key '${storeKey}' first.`,
+			`[${PACKAGE_NAME}] Theme store with key '${storeKey}' could not be found. Please run \`createThemeStore\` with key '${storeKey}' first.`,
 		)
 	}
-	return registry.get(storeKey)! as ThemeStore<T>
+
+	return registry.get(storeKey)! as ThemeStoreRegistry[T]
 }
+
+export interface ThemeStoreRegistry extends Record<string, ThemeStore<any>> {}
