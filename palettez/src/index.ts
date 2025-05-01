@@ -4,21 +4,19 @@ import {
 	type StorageAdapterCreator,
 	localStorageAdapter,
 	memoryStorageAdapter,
-	sessionStorageAdapter,
 } from './storage'
 
 export {
 	createThemeStore,
 	getThemeStore,
 	localStorageAdapter,
-	sessionStorageAdapter,
 	memoryStorageAdapter,
 	getThemesAndOptions,
 	type ThemeConfig,
 	type ThemeStoreOptions,
 	type ThemeStore,
+	type ThemeStoreRegistry,
 	type StorageAdapterCreator,
-	// type Themes,
 }
 
 const PACKAGE_NAME = 'palettez'
@@ -286,7 +284,7 @@ function createThemeStore<T extends ThemeStoreOptions>(
 	return themeStore
 }
 
-function getThemeStore<T extends string = typeof PACKAGE_NAME>(key?: T) {
+function getThemeStore<T extends keyof ThemeStoreRegistry>(key?: T) {
 	const storeKey = key || PACKAGE_NAME
 
 	if (!registry.has(storeKey)) {
@@ -298,4 +296,4 @@ function getThemeStore<T extends string = typeof PACKAGE_NAME>(key?: T) {
 	return registry.get(storeKey)! as ThemeStoreRegistry[T]
 }
 
-export interface ThemeStoreRegistry extends Record<string, ThemeStore<any>> {}
+interface ThemeStoreRegistry {}

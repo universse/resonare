@@ -2,7 +2,6 @@ import { name as packageName } from '../package.json'
 
 export {
 	localStorageAdapter,
-	sessionStorageAdapter,
 	memoryStorageAdapter,
 	type StorageAdapter,
 	type StorageAdapterCreate,
@@ -25,23 +24,25 @@ type StorageAdapterCreator<Options> = (
 	options?: Options,
 ) => StorageAdapterCreate
 
-const localStorageAdapter: StorageAdapterCreator<never> = () => {
+const localStorageAdapter: StorageAdapterCreator<{
+	storageType?: 'localStorage' | 'sessionStorage'
+}> = ({ storageType = 'localStorage' } = {}) => {
 	return ({ abortController }) => {
 		return {
 			getItem: (key: string) => {
 				try {
-					return JSON.parse(window.localStorage.getItem(key) || '{}')
+					return JSON.parse(window[storageType].getItem(key) || '{}')
 				} catch {
 					return {}
 				}
 			},
 
 			setItem: (key: string, value: object) => {
-				window.localStorage.setItem(key, JSON.stringify(value))
+				window[storageType].setItem(key, JSON.stringify(value))
 			},
 
 			// removeItem: (key: string) => {
-			// 	window.localStorage.removeItem(key)
+			// 	window[storageType].removeItem(key)
 			// },
 
 			watch: (cb) => {
@@ -50,54 +51,7 @@ const localStorageAdapter: StorageAdapterCreator<never> = () => {
 				window.addEventListener(
 					'storage',
 					(e) => {
-						if (e.storageArea !== window.localStorage) return
-						try {
-							const persistedValue = JSON.parse(e.newValue || 'null')
-							cb(e.key, persistedValue)
-						} catch {}
-					},
-					{
-						signal: AbortSignal.any([
-							abortController.signal,
-							controller.signal,
-						]),
-					},
-				)
-
-				return () => {
-					controller.abort()
-				}
-			},
-		}
-	}
-}
-
-const sessionStorageAdapter: StorageAdapterCreator<never> = () => {
-	return ({ abortController }) => {
-		return {
-			getItem: (key: string) => {
-				try {
-					return JSON.parse(window.sessionStorage.getItem(key) || '{}')
-				} catch {
-					return {}
-				}
-			},
-
-			setItem: (key: string, value: object) => {
-				window.sessionStorage.setItem(key, JSON.stringify(value))
-			},
-
-			// removeItem: (key: string) => {
-			// 	window.sessionStorage.removeItem(key)
-			// },
-
-			watch: (cb) => {
-				const controller = new AbortController()
-
-				window.addEventListener(
-					'storage',
-					(e) => {
-						if (e.storageArea !== window.sessionStorage) return
+						if (e.storageArea !== window[storageType]) return
 						try {
 							const persistedValue = JSON.parse(e.newValue || 'null')
 							cb(e.key, persistedValue)
