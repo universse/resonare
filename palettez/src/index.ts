@@ -42,13 +42,15 @@ export type ThemeAndOptions<T extends ThemeConfig> = Array<
 	{
 		[K in keyof T]: [
 			K,
-			T[K] extends Array<infer U>
-				? U extends string
-					? U
-					: U extends ThemeOption
-						? U['value']
-						: never
-				: never,
+			Array<
+				T[K] extends Array<infer U>
+					? U extends string
+						? U
+						: U extends ThemeOption
+							? U['value']
+							: never
+					: never
+			>,
 		]
 	}[keyof T]
 >
