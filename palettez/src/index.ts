@@ -38,26 +38,30 @@ export type ThemeStoreOptions = {
 	storage?: StorageAdapterCreate
 }
 
-export type ThemeAndOptions<T extends ThemeConfig> = {
-	[K in keyof T]: T[K] extends Array<infer U>
-		? U extends string
-			? U
-			: U extends ThemeOption
-				? U['value']
-				: never
-		: never
-}
+export type ThemeAndOptions<T extends ThemeConfig> = Array<
+	{
+		[K in keyof T]: [
+			K,
+			T[K] extends Array<infer U>
+				? U extends string
+					? U
+					: U extends ThemeOption
+						? U['value']
+						: never
+				: never,
+		]
+	}[keyof T]
+>
+
 export function getThemesAndOptions<T extends ThemeConfig>(config: T) {
-	return Object.fromEntries(
-		Object.entries(config).map(([theme, options]) => {
-			return [
-				theme,
-				options.map((option) =>
-					typeof option === 'string' ? option : option.value,
-				),
-			]
-		}),
-	) as ThemeAndOptions<T>
+	return Object.entries(config).map(([theme, options]) => {
+		return [
+			theme,
+			options.map((option) =>
+				typeof option === 'string' ? option : option.value,
+			),
+		]
+	}) as ThemeAndOptions<T>
 }
 
 const isClient = !!(
