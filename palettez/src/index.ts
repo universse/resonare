@@ -134,8 +134,15 @@ export class ThemeStore<T extends ThemeConfig> {
 		return this.#resolveThemes()
 	}
 
-	setThemes = async (themes: Partial<Themes<T>>): Promise<void> => {
-		this.#setThemesAndNotify({ ...this.#currentThemes, ...themes })
+	setThemes = async (
+		themes:
+			| Partial<Themes<T>>
+			| ((currentThemes: Themes<T>) => Partial<Themes<T>>),
+	): Promise<void> => {
+		const updatedThemes =
+			typeof themes === 'function' ? themes(this.#currentThemes) : themes
+
+		this.#setThemesAndNotify({ ...this.#currentThemes, ...updatedThemes })
 
 		await this.#storage.setItem(this.#options.key, this.#currentThemes)
 
