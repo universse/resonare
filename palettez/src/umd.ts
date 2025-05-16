@@ -1,7 +1,6 @@
 export {
 	createThemeStore,
 	getThemeStore,
-	localStorageAdapter,
-	memoryStorageAdapter,
 	getThemesAndOptions,
 } from '.'
+export { localStorageAdapter, memoryStorageAdapter } from './storage'

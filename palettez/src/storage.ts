@@ -1,14 +1,6 @@
 import { name as packageName } from '../package.json'
 
-export {
-	localStorageAdapter,
-	memoryStorageAdapter,
-	type StorageAdapter,
-	type StorageAdapterCreate,
-	type StorageAdapterCreator,
-}
-
-type StorageAdapter = {
+export type StorageAdapter = {
 	getItem: (key: string) => object | Promise<object>
 	setItem: (key: string, value: object) => void | Promise<void>
 	// removeItem: (key: string) => void | Promise<void>
@@ -16,15 +8,15 @@ type StorageAdapter = {
 	watch?: (cb: (key: string | null, value: object) => void) => () => void
 }
 
-type StorageAdapterCreate = ({
+export type StorageAdapterCreate = ({
 	abortController,
 }: { abortController: AbortController }) => StorageAdapter
 
-type StorageAdapterCreator<Options> = (
+export type StorageAdapterCreator<Options> = (
 	options?: Options,
 ) => StorageAdapterCreate
 
-const localStorageAdapter: StorageAdapterCreator<{
+export const localStorageAdapter: StorageAdapterCreator<{
 	storageType?: 'localStorage' | 'sessionStorage'
 }> = ({ storageType = 'localStorage' } = {}) => {
 	return ({ abortController }) => {
@@ -73,7 +65,7 @@ const localStorageAdapter: StorageAdapterCreator<{
 	}
 }
 
-const memoryStorageAdapter: StorageAdapterCreator<never> = () => {
+export const memoryStorageAdapter: StorageAdapterCreator<never> = () => {
 	return ({ abortController }) => {
 		const storage = new Map<string, object>()
 		const channel = new BroadcastChannel(packageName)

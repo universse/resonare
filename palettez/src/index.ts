@@ -1,23 +1,8 @@
 import {
 	type StorageAdapter,
 	type StorageAdapterCreate,
-	type StorageAdapterCreator,
 	localStorageAdapter,
-	memoryStorageAdapter,
 } from './storage'
-
-export {
-	createThemeStore,
-	getThemeStore,
-	localStorageAdapter,
-	memoryStorageAdapter,
-	getThemesAndOptions,
-	type ThemeConfig,
-	type ThemeStoreOptions,
-	type ThemeStore,
-	type ThemeStoreRegistry,
-	type StorageAdapterCreator,
-}
 
 const PACKAGE_NAME = 'palettez'
 
@@ -27,7 +12,7 @@ type ThemeOption = {
 	media?: [string, string, string]
 }
 
-type ThemeConfig = Record<string, Array<string | ThemeOption>>
+export type ThemeConfig = Record<string, Array<string | ThemeOption>>
 
 type KeyedThemeConfig = Record<string, Record<string, ThemeOption>>
 
@@ -46,11 +31,33 @@ type Listener<T extends ThemeConfig> = (
 	resolvedThemes: Themes<T>,
 ) => void
 
-type ThemeStoreOptions = {
+export type ThemeStoreOptions = {
 	key?: string
 	config: ThemeConfig
 	initialThemes?: Record<string, string>
 	storage?: StorageAdapterCreate
+}
+
+export type ThemeAndOptions<T extends ThemeConfig> = {
+	[K in keyof T]: T[K] extends Array<infer U>
+		? U extends string
+			? U
+			: U extends ThemeOption
+				? U['value']
+				: never
+		: never
+}
+export function getThemesAndOptions<T extends ThemeConfig>(config: T) {
+	return Object.fromEntries(
+		Object.entries(config).map(([theme, options]) => {
+			return [
+				theme,
+				options.map((option) =>
+					typeof option === 'string' ? option : option.value,
+				),
+			]
+		}),
+	) as ThemeAndOptions<T>
 }
 
 const isClient = !!(
@@ -59,20 +66,7 @@ const isClient = !!(
 	typeof window.document.createElement !== 'undefined'
 )
 
-function getThemesAndOptions(
-	config: ThemeConfig,
-): Array<[string, Array<string>]> {
-	return Object.entries(config).map(([theme, options]) => {
-		return [
-			theme,
-			options.map((option) =>
-				typeof option === 'string' ? option : option.value,
-			),
-		]
-	})
-}
-
-class ThemeStore<T extends ThemeConfig> {
+export class ThemeStore<T extends ThemeConfig> {
 	#options: Required<Omit<ThemeStoreOptions, 'config'>> & {
 		config: KeyedThemeConfig
 	}
@@ -268,7 +262,7 @@ class ThemeStore<T extends ThemeConfig> {
 
 const registry = new Map<string, ThemeStore<ThemeConfig>>()
 
-function createThemeStore<T extends ThemeStoreOptions>(
+export function createThemeStore<T extends ThemeStoreOptions>(
 	options: T,
 ): ThemeStore<T['config']> {
 	const storeKey = options.key || PACKAGE_NAME
@@ -284,7 +278,7 @@ function createThemeStore<T extends ThemeStoreOptions>(
 	return themeStore
 }
 
-function getThemeStore<T extends keyof ThemeStoreRegistry>(key?: T) {
+export function getThemeStore<T extends keyof ThemeStoreRegistry>(key?: T) {
 	const storeKey = key || PACKAGE_NAME
 
 	if (!registry.has(storeKey)) {
@@ -296,4 +290,4 @@ function getThemeStore<T extends keyof ThemeStoreRegistry>(key?: T) {
 	return registry.get(storeKey)! as ThemeStoreRegistry[T]
 }
 
-interface ThemeStoreRegistry {}
+export interface ThemeStoreRegistry {}

@@ -1,5 +1,6 @@
 'use client'
-import { createThemeStore, memoryStorageAdapter } from 'palettez'
+import { createThemeStore } from 'palettez'
+import { memoryStorageAdapter } from 'palettez/storage'
 import * as React from 'react'
 
 const ThemeStoreContext = React.createContext(null)

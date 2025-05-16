@@ -33,7 +33,7 @@ export default defineConfig([
 	{
 		clean: true,
 		dts: true,
-		entry: ['src/index.ts', 'src/react.ts'],
+		entry: ['src/index.ts', 'src/react.ts', 'src/storage.ts'],
 		format: ['esm', 'cjs'],
 		minify: !!process.env.CI,
 	},

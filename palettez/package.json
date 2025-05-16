@@ -1,6 +1,6 @@
 {
 	"name": "palettez",
-	"version": "0.0.22",
+	"version": "0.0.23",
 	"description": "Palettez",
 	"keywords": ["theming"],
 	"repository": {
@@ -23,6 +23,12 @@
 			"import": "./dist/react.js",
 			"require": "./dist/react.cjs",
 			"default": "./dist/react.js"
+		},
+		"./storage": {
+			"types": "./dist/storage.d.ts",
+			"import": "./dist/storage.js",
+			"require": "./dist/storage.cjs",
+			"default": "./dist/storage.js"
 		},
 		"./raw": {
 			"import": "./dist/palettez.min.js"
