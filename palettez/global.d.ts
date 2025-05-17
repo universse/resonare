@@ -1,3 +1,3 @@
 interface Window {
-	palettez: typeof import('./dist/index')
+	palettez: typeof import('./dist/umd')
 }

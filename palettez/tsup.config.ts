@@ -11,30 +11,31 @@ declare global {
 
 export default defineConfig([
 	{
-		clean: true,
 		entry: {
 			[packageName]: 'src/umd.ts',
 		},
-		globalName: packageName,
 		format: ['iife'],
+		globalName: packageName,
+		dts: true,
 		outExtension() {
 			return { js: '.min.js' }
 		},
 		banner: {
 			js: `/**
- * ${packageName} v${version}
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */`,
+			* ${packageName} v${version}
+			*
+			* This source code is licensed under the MIT license found in the
+			* LICENSE file in the root directory of this source tree.
+			*/`,
 		},
 		minify: !!process.env.CI,
+		clean: true,
 	},
 	{
-		clean: true,
+		entry: ['src/index.ts', 'src/react.ts', 'src/storage.ts', 'src/umd.ts'],
+		format: ['esm'],
 		dts: true,
-		entry: ['src/index.ts', 'src/react.ts', 'src/storage.ts'],
-		format: ['esm', 'cjs'],
 		minify: !!process.env.CI,
+		clean: true,
 	},
 ])
