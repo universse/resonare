@@ -22,14 +22,19 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
+          cache: pnpm
           node-version: 22
 
       - name: Install dependencies
         shell: bash
         run: pnpm i --ignore-scripts
 
-      - name: Build
-        run: pnpm --filter=palettez build
+      - name: Build & deploy
+        run: |
+          pnpm turbo deploy
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Publish
         id: changesets

@@ -2,7 +2,9 @@
 	"name": "palettez",
 	"version": "0.0.28",
 	"description": "Palettez",
-	"keywords": ["theming"],
+	"keywords": [
+		"theming"
+	],
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/universse/palettez.git"
@@ -37,7 +39,11 @@
 	"jsdelivr": "./dist/palettez.min.js",
 	"unpkg": "./dist/palettez.min.js",
 	"types": "./dist/index.d.ts",
-	"files": ["dist", "global.d.ts", "palettez.min.txt.d.ts"],
+	"files": [
+		"dist",
+		"global.d.ts",
+		"palettez.min.txt.d.ts"
+	],
 	"scripts": {
 		"build": "tsup",
 		"dev": "tsup --watch",
@@ -48,8 +54,8 @@
 		"@size-limit/preset-small-lib": "11.2.0",
 		"@types/react": "19.1.8",
 		"jsdom": "26.1.0",
-		"react": "19.1.0",
-		"react-dom": "19.1.0",
+		"react": "19.1.1",
+		"react-dom": "19.1.1",
 		"size-limit": "11.2.0",
 		"tsup": "8.5.0",
 		"typescript": "5.8.3",
