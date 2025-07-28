@@ -8,16 +8,21 @@ const PACKAGE_NAME = 'palettez'
 
 type ThemeOption = {
 	value: string
-	isDefault?: boolean
 	media?: [string, string, string]
 }
 
-export type ThemeConfig = Record<string, Array<string | ThemeOption>>
+export type ThemeConfig = Record<
+	string,
+	{
+		options: Array<string | ThemeOption>
+		defaultOption?: string
+	}
+>
 
 type KeyedThemeConfig = Record<string, Record<string, ThemeOption>>
 
-type Themes<T extends ThemeConfig> = {
-	[K in keyof T]: T[K] extends Array<infer U>
+export type Themes<T extends ThemeConfig> = {
+	[K in keyof T]: T[K]['options'] extends Array<infer U>
 		? U extends string
 			? U
 			: U extends ThemeOption
@@ -31,10 +36,10 @@ type Listener<T extends ThemeConfig> = (
 	resolvedThemes: Themes<T>,
 ) => void
 
-export type ThemeStoreOptions = {
+export type ThemeStoreOptions<T extends ThemeConfig> = {
 	key?: string
-	config: ThemeConfig
-	initialThemes?: Record<string, string>
+	config: T
+	initialThemes?: Partial<Themes<T>>
 	storage?: StorageAdapterCreate
 }
 
@@ -43,7 +48,7 @@ export type ThemeAndOptions<T extends ThemeConfig> = Array<
 		[K in keyof T]: [
 			K,
 			Array<
-				T[K] extends Array<infer U>
+				T[K]['options'] extends Array<infer U>
 					? U extends string
 						? U
 						: U extends ThemeOption
@@ -56,9 +61,9 @@ export type ThemeAndOptions<T extends ThemeConfig> = Array<
 >
 
 export function getThemesAndOptions<T extends ThemeConfig>(config: T) {
-	return Object.entries(config).map(([theme, options]) => {
+	return Object.entries(config).map(([themeKey, { options }]) => {
 		return [
-			theme,
+			themeKey,
 			options.map((option) =>
 				typeof option === 'string' ? option : option.value,
 			),
@@ -73,7 +78,7 @@ const isClient = !!(
 )
 
 export class ThemeStore<T extends ThemeConfig> {
-	#options: Required<Omit<ThemeStoreOptions, 'config'>> & {
+	#options: Required<Omit<ThemeStoreOptions<T>, 'config'>> & {
 		config: KeyedThemeConfig
 	}
 	#storage: StorageAdapter
@@ -90,10 +95,10 @@ export class ThemeStore<T extends ThemeConfig> {
 		config,
 		initialThemes = {},
 		storage = localStorageAdapter(),
-	}: ThemeStoreOptions) {
+	}: ThemeStoreOptions<T>) {
 		const keyedConfig: KeyedThemeConfig = Object.fromEntries(
-			Object.entries(config).map(([theme, options]) => [
-				theme,
+			Object.entries(config).map(([themeKey, { options }]) => [
+				themeKey,
 				Object.fromEntries(
 					options.map((option) => {
 						return typeof option === 'string'
@@ -107,11 +112,13 @@ export class ThemeStore<T extends ThemeConfig> {
 		this.#options = { key, config: keyedConfig, initialThemes, storage }
 
 		this.#defaultThemes = Object.fromEntries(
-			Object.entries(keyedConfig).map(([theme, themeOptions]) => {
-				const options = Object.values(themeOptions)
+			Object.entries(keyedConfig).map(([themeKey, themeOptionsMap]) => {
+				const options = Object.values(themeOptionsMap)
 				const defaultOption =
-					options.find((option) => option.isDefault) || options[0]
-				return [theme, defaultOption!.value]
+					config[themeKey]!.defaultOption ||
+					(typeof options[0] === 'string' ? options[0] : options[0]!.value)
+
+				return [themeKey, defaultOption]
 			}),
 		) as Themes<T>
 
@@ -122,7 +129,7 @@ export class ThemeStore<T extends ThemeConfig> {
 		})
 
 		this.#resolvedOptionsByTheme = Object.fromEntries(
-			Object.keys(keyedConfig).map((theme) => [theme, {}]),
+			Object.keys(keyedConfig).map((themeKey) => [themeKey, {}]),
 		)
 	}
 
@@ -203,29 +210,29 @@ export class ThemeStore<T extends ThemeConfig> {
 		registry.delete(this.#options.key)
 	}
 
-	#setThemesAndNotify = (theme: Themes<T>): void => {
-		this.#currentThemes = theme
+	#setThemesAndNotify = (themes: Themes<T>): void => {
+		this.#currentThemes = themes
 		const resolvedThemes = this.#resolveThemes()
 		this.#notify(resolvedThemes)
 	}
 
 	#resolveThemes = (): Themes<T> => {
 		return Object.fromEntries(
-			Object.entries(this.#currentThemes).map(([theme, optionKey]) => {
-				const option = this.#options.config[theme]![optionKey]!
+			Object.entries(this.#currentThemes).map(([themeKey, optionKey]) => {
+				const option = this.#options.config[themeKey]![optionKey]!
 
-				const resolved = this.#resolveThemeOption({ theme, option })
+				const resolved = this.#resolveThemeOption({ themeKey, option })
 
-				return [theme, resolved]
+				return [themeKey, resolved]
 			}),
 		) as Themes<T>
 	}
 
 	#resolveThemeOption = ({
-		theme,
+		themeKey,
 		option,
 	}: {
-		theme: string
+		themeKey: string
 		option: ThemeOption
 	}): string => {
 		if (!option.media) return option.value
@@ -237,25 +244,25 @@ export class ThemeStore<T extends ThemeConfig> {
 			return option.value
 		}
 
-		if (!this.#resolvedOptionsByTheme[theme]![option.value]) {
+		if (!this.#resolvedOptionsByTheme[themeKey]![option.value]) {
 			const {
 				media: [media, ifMatch, ifNotMatch],
 			} = option
 
 			const mq = window.matchMedia(media)
 
-			this.#resolvedOptionsByTheme[theme]![option.value] = mq.matches
+			this.#resolvedOptionsByTheme[themeKey]![option.value] = mq.matches
 				? ifMatch
 				: ifNotMatch
 
 			mq.addEventListener(
 				'change',
 				(e) => {
-					this.#resolvedOptionsByTheme[theme]![option.value] = e.matches
+					this.#resolvedOptionsByTheme[themeKey]![option.value] = e.matches
 						? ifMatch
 						: ifNotMatch
 
-					if (this.#currentThemes[theme] === option.value) {
+					if (this.#currentThemes[themeKey] === option.value) {
 						this.#setThemesAndNotify({ ...this.#currentThemes })
 					}
 				},
@@ -263,7 +270,7 @@ export class ThemeStore<T extends ThemeConfig> {
 			)
 		}
 
-		return this.#resolvedOptionsByTheme[theme]![option.value]!
+		return this.#resolvedOptionsByTheme[themeKey]![option.value]!
 	}
 
 	#notify = (resolvedThemes: Themes<T>): void => {
@@ -275,18 +282,18 @@ export class ThemeStore<T extends ThemeConfig> {
 
 const registry = new Map<string, ThemeStore<ThemeConfig>>()
 
-export function createThemeStore<T extends ThemeStoreOptions>(
-	options: T,
-): ThemeStore<T['config']> {
+export function createThemeStore<T extends ThemeConfig>(
+	options: ThemeStoreOptions<T>,
+): ThemeStore<T> {
 	const storeKey = options.key || PACKAGE_NAME
 
 	if (registry.has(storeKey)) {
 		registry.get(storeKey)!.destroy()
 	}
 
-	const themeStore = new ThemeStore<T['config']>(options)
+	const themeStore = new ThemeStore<T>(options)
 
-	registry.set(storeKey, themeStore)
+	registry.set(storeKey, themeStore as ThemeStore<ThemeConfig>)
 
 	return themeStore
 }

@@ -1,0 +1,46 @@
+*,
+*::before,
+*::after {
+	margin: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: sans-serif;
+	min-height: 100vh;
+}
+
+:is(.theme, :root)[data-color-scheme][data-contrast] {
+	color: var(--color-text);
+	background-color: var(--color-background);
+
+	padding: 16px;
+}
+
+:is(:root, .theme)[data-color-scheme="light"] {
+	color-scheme: light;
+}
+
+:is(:root, .theme)[data-color-scheme="dark"] {
+	color-scheme: dark;
+}
+
+:is(:root, .theme)[data-color-scheme="light"][data-contrast="standard"] {
+	--color-background: #fff;
+	--color-text: #555;
+}
+
+:is(:root, .theme)[data-color-scheme="light"][data-contrast="high"] {
+	--color-background: #fff;
+	--color-text: #222;
+}
+
+:is(:root, .theme)[data-color-scheme="dark"][data-contrast="standard"] {
+	--color-background: #000;
+	--color-text: #aaa;
+}
+
+:is(:root, .theme)[data-color-scheme="dark"][data-contrast="high"] {
+	--color-background: #000;
+	--color-text: #ddd;
+}

@@ -1,0 +1,10 @@
+{
+	"name": "palettez",
+	"main": "./dist/_worker.js/index.js",
+	"compatibility_date": "2025-07-28",
+	"compatibility_flags": ["nodejs_compat"],
+	"assets": {
+		"binding": "ASSETS",
+		"directory": "./dist"
+	}
+}

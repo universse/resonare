@@ -15,8 +15,10 @@ out
 build
 .cache
 
-# Vercel
-.vercel
+# Cloudflare
+.mf
+.wrangler
+worker-configuration.d.ts
 
 # Typescript
 *.tsbuildinfo

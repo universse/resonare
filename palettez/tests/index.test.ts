@@ -3,22 +3,33 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	type ThemeConfig,
+	type ThemeStoreOptions,
 	createThemeStore,
 	getThemeStore,
 	getThemesAndOptions,
 } from '../src'
 
 const mockConfig = {
-	colorScheme: [
-		{
-			value: 'system',
-			media: ['(prefers-color-scheme: dark)', 'dark', 'light'],
-		},
-		'light',
-		'dark',
-	],
-	contrast: ['standard', 'high'],
+	colorScheme: {
+		options: [
+			{
+				value: 'system',
+				media: ['(prefers-color-scheme: dark)', 'dark', 'light'],
+			},
+			'light',
+			'dark',
+		],
+	},
+	contrast: {
+		options: ['standard', 'high'],
+	},
 } as const satisfies ThemeConfig
+
+declare module '../src' {
+	interface ThemeStoreRegistry {
+		palettez: ThemeStore<typeof mockConfig>
+	}
+}
 
 const mockStorage = {
 	getItem: vi.fn(),
@@ -31,7 +42,7 @@ const mockOptions = {
 	key: 'palettez',
 	config: mockConfig,
 	storage: () => mockStorage,
-}
+} satisfies ThemeStoreOptions<typeof mockConfig>
 
 describe('getThemesAndOptions', () => {
 	it('should return the themes and options', () => {
@@ -137,7 +148,7 @@ describe('ThemeStore', () => {
 			contrast: 'high',
 		})
 
-		expect(() => getThemeStore(mockOptions.key)).toThrow()
+		expect(() => getThemeStore(mockOptions.key as 'palettez')).toThrow()
 	})
 })
 

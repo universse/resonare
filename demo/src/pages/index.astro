@@ -1,0 +1,20 @@
+---
+import { ThemeSelect, themeScript } from './_lib'
+import './_style.css'
+---
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta
+      name='viewport'
+      content='width=device-width,initial-scale=1'
+    />
+    <title>Palettez Demo</title>
+    <script is:inline set:html={themeScript} />
+  </head>
+  <body>
+    <main>
+      <ThemeSelect client:load />
+    </main>
+  </body>
+</html>
