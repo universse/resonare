@@ -19,7 +19,7 @@ A configuration-based theme store for building deeply personal, adaptable user i
 
 ## Demo
 
-- [Demo](https://palettez.pages.dev)
+- [Demo](https://palettez.universse.workers.dev)
 
 ## Installation
 

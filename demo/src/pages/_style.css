@@ -6,15 +6,26 @@
 }
 
 body {
-	font-family: sans-serif;
-	min-height: 100vh;
+	font-family:
+		ui-sans-serif,
+		system-ui,
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		"Helvetica Neue",
+		Arial,
+		"Noto Sans",
+		sans-serif,
+		"Apple Color Emoji",
+		"Segoe UI Emoji",
+		"Segoe UI Symbol",
+		"Noto Color Emoji",;
 }
 
 :is(.theme, :root)[data-color-scheme][data-contrast] {
 	color: var(--color-text);
 	background-color: var(--color-background);
-
-	padding: 16px;
 }
 
 :is(:root, .theme)[data-color-scheme="light"] {
@@ -25,22 +36,275 @@ body {
 	color-scheme: dark;
 }
 
-:is(:root, .theme)[data-color-scheme="light"][data-contrast="standard"] {
-	--color-background: #fff;
-	--color-text: #555;
+:is(
+		:root,
+		.theme
+	)[data-color="neutral"][data-color-scheme="light"][data-contrast="standard"] {
+	--color-background: oklch(97% 0 0);
+	--color-text: oklch(26.9% 0 0);
 }
 
-:is(:root, .theme)[data-color-scheme="light"][data-contrast="high"] {
-	--color-background: #fff;
-	--color-text: #222;
+:is(
+		:root,
+		.theme
+	)[data-color="neutral"][data-color-scheme="light"][data-contrast="high"] {
+	--color-background: oklch(97% 0 0);
+	--color-text: oklch(14.5% 0 0);
 }
 
-:is(:root, .theme)[data-color-scheme="dark"][data-contrast="standard"] {
-	--color-background: #000;
-	--color-text: #aaa;
+:is(
+		:root,
+		.theme
+	)[data-color="neutral"][data-color-scheme="dark"][data-contrast="standard"] {
+	--color-background: oklch(14.5% 0 0);
+	--color-text: oklch(92.2% 0 0);
 }
 
-:is(:root, .theme)[data-color-scheme="dark"][data-contrast="high"] {
-	--color-background: #000;
-	--color-text: #ddd;
+:is(
+		:root,
+		.theme
+	)[data-color="neutral"][data-color-scheme="dark"][data-contrast="high"] {
+	--color-background: oklch(14.5% 0 0);
+	--color-text: oklch(98.5% 0 0);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="red"][data-color-scheme="light"][data-contrast="standard"] {
+	--color-background: oklch(93.6% 0.032 17.717);
+	--color-text: oklch(44.4% 0.177 26.899);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="red"][data-color-scheme="light"][data-contrast="high"] {
+	--color-background: oklch(93.6% 0.032 17.717);
+	--color-text: oklch(25.8% 0.092 26.042);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="red"][data-color-scheme="dark"][data-contrast="standard"] {
+	--color-background: oklch(25.8% 0.092 26.042);
+	--color-text: oklch(88.5% 0.062 18.334);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="red"][data-color-scheme="dark"][data-contrast="high"] {
+	--color-background: oklch(25.8% 0.092 26.042);
+	--color-text: oklch(97.1% 0.013 17.38);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="orange"][data-color-scheme="light"][data-contrast="standard"] {
+	--color-background: oklch(95.4% 0.038 75.164);
+	--color-text: oklch(47% 0.157 37.304);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="orange"][data-color-scheme="light"][data-contrast="high"] {
+	--color-background: oklch(95.4% 0.038 75.164);
+	--color-text: oklch(26.6% 0.079 36.259);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="orange"][data-color-scheme="dark"][data-contrast="standard"] {
+	--color-background: oklch(26.6% 0.079 36.259);
+	--color-text: oklch(90.1% 0.076 70.697);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="orange"][data-color-scheme="dark"][data-contrast="high"] {
+	--color-background: oklch(26.6% 0.079 36.259);
+	--color-text: oklch(98% 0.016 73.684);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="green"][data-color-scheme="light"][data-contrast="standard"] {
+	--color-background: oklch(96.2% 0.044 156.743);
+	--color-text: oklch(44.8% 0.119 151.328);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="green"][data-color-scheme="light"][data-contrast="high"] {
+	--color-background: oklch(96.2% 0.044 156.743);
+	--color-text: oklch(26.6% 0.065 152.934);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="green"][data-color-scheme="dark"][data-contrast="standard"] {
+	--color-background: oklch(26.6% 0.065 152.934);
+	--color-text: oklch(92.5% 0.084 155.995);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="green"][data-color-scheme="dark"][data-contrast="high"] {
+	--color-background: oklch(26.6% 0.065 152.934);
+	--color-text: oklch(98.2% 0.018 155.826);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="blue"][data-color-scheme="light"][data-contrast="standard"] {
+	--color-background: oklch(93.2% 0.032 255.585);
+	--color-text: oklch(42.4% 0.199 265.638);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="blue"][data-color-scheme="light"][data-contrast="high"] {
+	--color-background: oklch(93.2% 0.032 255.585);
+	--color-text: oklch(28.2% 0.091 267.935);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="blue"][data-color-scheme="dark"][data-contrast="standard"] {
+	--color-background: oklch(28.2% 0.091 267.935);
+	--color-text: oklch(88.2% 0.059 254.128);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="blue"][data-color-scheme="dark"][data-contrast="high"] {
+	--color-background: oklch(28.2% 0.091 267.935);
+	--color-text: oklch(97% 0.014 254.604);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="purple"][data-color-scheme="light"][data-contrast="standard"] {
+	--color-background: oklch(94.6% 0.033 307.174);
+	--color-text: oklch(43.8% 0.218 303.724);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="purple"][data-color-scheme="light"][data-contrast="high"] {
+	--color-background: oklch(94.6% 0.033 307.174);
+	--color-text: oklch(29.1% 0.149 302.717);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="purple"][data-color-scheme="dark"][data-contrast="standard"] {
+	--color-background: oklch(29.1% 0.149 302.717);
+	--color-text: oklch(90.2% 0.063 306.703);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="purple"][data-color-scheme="dark"][data-contrast="high"] {
+	--color-background: oklch(29.1% 0.149 302.717);
+	--color-text: oklch(97.7% 0.014 308.299);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="pink"][data-color-scheme="light"][data-contrast="standard"] {
+	--color-background: oklch(94.8% 0.028 342.258);
+	--color-text: oklch(45.9% 0.187 3.815);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="pink"][data-color-scheme="light"][data-contrast="high"] {
+	--color-background: oklch(94.8% 0.028 342.258);
+	--color-text: oklch(28.4% 0.109 3.907);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="pink"][data-color-scheme="dark"][data-contrast="standard"] {
+	--color-background: oklch(28.4% 0.109 3.907);
+	--color-text: oklch(89.9% 0.061 343.231);
+}
+
+:is(
+		:root,
+		.theme
+	)[data-color="pink"][data-color-scheme="dark"][data-contrast="high"] {
+	--color-background: oklch(28.4% 0.109 3.907);
+	--color-text: oklch(97.1% 0.014 343.198);
+}
+
+:is(:root, .theme)[data-scale="80"] {
+	--scale: 0.8;
+}
+
+:is(:root, .theme)[data-scale="90"] {
+	--scale: 0.9;
+}
+
+:is(:root, .theme)[data-scale="100"] {
+	--scale: 1;
+}
+
+:is(:root, .theme)[data-scale="110"] {
+	--scale: 1.1;
+}
+
+:is(:root, .theme)[data-scale="120"] {
+	--scale: 1.2;
+}
+
+main {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 100vh;
+}
+
+.theme-select {
+	align-items: center;
+	display: grid;
+	gap: calc(var(--scale) * 2rem);
+	grid-template-columns: auto 1fr;
+
+	& label {
+		color: var(--color-text);
+		font-size: 1rem;
+		font-weight: 600;
+	}
+
+	select {
+		background-color: var(--color-background);
+		border: 1px solid var(--color-text);
+		border-radius: 0.25rem;
+		color: var(--color-text);
+		font-size: 1rem;
+		padding: calc(var(--scale) * 0.5rem);
+	}
 }
