@@ -1,13 +1,14 @@
 {
 	"name": "palettez",
-	"version": "0.0.28",
+	"version": "0.0.29",
 	"description": "Palettez",
 	"keywords": [
 		"theming"
 	],
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/universse/palettez.git"
+		"url": "https://github.com/universse/palettez.git",
+		"directory": "palettez"
 	},
 	"license": "MIT",
 	"author": "Si Phuoc <phuoc317049@gmail.com>",
