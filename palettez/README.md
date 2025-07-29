@@ -1,6 +1,6 @@
 # Palettez [![Version](https://img.shields.io/npm/v/palettez.svg?labelColor=black&color=blue)](https://www.npmjs.com/package/palettez)
 
-A configuration-based theme store for building deeply personal, adaptable user interfaces.
+A configuration-based theme store for building deeply personal user interface.
 
 ## Features
 

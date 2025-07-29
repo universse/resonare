@@ -1,7 +1,7 @@
 import {
+	localStorageAdapter,
 	type StorageAdapter,
 	type StorageAdapterCreate,
-	localStorageAdapter,
 } from './storage'
 
 const PACKAGE_NAME = 'palettez'
@@ -114,9 +114,9 @@ export class ThemeStore<T extends ThemeConfig> {
 		this.#defaultThemes = Object.fromEntries(
 			Object.entries(keyedConfig).map(([themeKey, themeOptionsMap]) => {
 				const options = Object.values(themeOptionsMap)
+
 				const defaultOption =
-					config[themeKey]!.defaultOption ||
-					(typeof options[0] === 'string' ? options[0] : options[0]!.value)
+					config[themeKey]!.defaultOption || options[0]!.value
 
 				return [themeKey, defaultOption]
 			}),

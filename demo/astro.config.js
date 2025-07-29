@@ -1,17 +1,20 @@
-import cloudflare from "@astrojs/cloudflare";
-import react from "@astrojs/react";
-import { defineConfig } from "astro/config";
+import cloudflare from '@astrojs/cloudflare'
+import react from '@astrojs/react'
+import { defineConfig } from 'astro/config'
 
 export default defineConfig({
 	adapter: cloudflare(),
+	devToolbar: {
+		enabled: false,
+	},
 	integrations: [react()],
 	vite: {
 		resolve: {
 			alias: {
-				...(process.env.NODE_ENV === "production" && {
-					"react-dom/server": "react-dom/server.edge",
+				...(process.env.NODE_ENV === 'production' && {
+					'react-dom/server': 'react-dom/server.edge',
 				}),
 			},
 		},
 	},
-});
+})

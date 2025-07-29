@@ -24,16 +24,21 @@ const config = {
 	contrast: {
 		options: ['standard', 'high'],
 	},
-	scale: {
-		options: ['80', '90', '100', '110', '120'],
+	spacing: {
+		options: ['80%', '90%', '100%', '110%', '120%'],
+		defaultOption: '100%',
+	},
+	fontSize: {
+		options: ['80%', '90%', '100%', '110%', '120%'],
+		defaultOption: '100%',
 	},
 } as const satisfies ThemeConfig
 
-const storeKey = 'single'
+const storeKey = 'demo'
 
 declare module 'palettez' {
 	interface ThemeStoreRegistry {
-		single: ThemeStore<typeof config>
+		demo: ThemeStore<typeof config>
 	}
 }
 
@@ -68,7 +73,8 @@ const ThemeLabels = {
 	color: 'color',
 	colorScheme: 'color scheme',
 	contrast: 'contrast',
-	scale: 'scale',
+	spacing: 'spacing',
+	fontSize: 'font size',
 } as const
 
 export function ThemeSelect() {
