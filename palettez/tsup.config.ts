@@ -35,7 +35,6 @@ export default defineConfig([
 		entry: ['src/index.ts', 'src/react.ts', 'src/storage.ts', 'src/umd.ts'],
 		format: ['esm'],
 		dts: true,
-		minify: !!process.env.CI,
 		clean: true,
 	},
 ])

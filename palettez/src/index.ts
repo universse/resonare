@@ -71,6 +71,18 @@ export function getThemesAndOptions<T extends ThemeConfig>(config: T) {
 	}) as ThemeAndOptions<T>
 }
 
+export function getDefaultThemes<T extends ThemeConfig>(config: T) {
+	return Object.fromEntries(
+		Object.entries(config).map(([themeKey, { options, defaultOption }]) => {
+			const defaultOptionValue =
+				defaultOption ??
+				(typeof options[0] === 'string' ? options[0] : options[0]!.value)
+
+			return [themeKey, defaultOptionValue]
+		}),
+	) as Themes<T>
+}
+
 const isClient = !!(
 	typeof window !== 'undefined' &&
 	typeof window.document !== 'undefined' &&
@@ -111,16 +123,7 @@ export class ThemeStore<T extends ThemeConfig> {
 
 		this.#options = { key, config: keyedConfig, initialThemes, storage }
 
-		this.#defaultThemes = Object.fromEntries(
-			Object.entries(keyedConfig).map(([themeKey, themeOptionsMap]) => {
-				const options = Object.values(themeOptionsMap)
-
-				const defaultOption =
-					config[themeKey]!.defaultOption || options[0]!.value
-
-				return [themeKey, defaultOption]
-			}),
-		) as Themes<T>
+		this.#defaultThemes = getDefaultThemes(config)
 
 		this.#currentThemes = { ...this.#defaultThemes, ...initialThemes }
 
