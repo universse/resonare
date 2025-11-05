@@ -1,5 +1,6 @@
 export {
 	createThemeStore,
+	destroyThemeStore,
 	getThemeStore,
 	getThemesAndOptions,
 } from '.'

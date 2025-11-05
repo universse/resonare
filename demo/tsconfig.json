@@ -2,7 +2,8 @@
 	"extends": "astro/tsconfigs/strictest",
 	"compilerOptions": {
 		"baseUrl": ".",
-		"jsx": "react-jsx",
-		"types": ["palettez/global"]
-	}
+		"jsx": "react-jsx"
+	},
+	"include": [".astro/types.d.ts", "node_modules/palettez/global.d.ts", "**/*"],
+	"exclude": ["dist", ".wrangler"]
 }

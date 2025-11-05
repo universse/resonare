@@ -1,6 +1,6 @@
 [
 	{
-		"path": "dist/palettez.min.js",
+		"path": "dist/palettez.iife.min.js",
 		"limit": "2 KB",
 		"gzip": true
 	}

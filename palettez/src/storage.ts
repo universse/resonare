@@ -1,7 +1,7 @@
-import { name as packageName } from '../package.json'
+import { name as PACKAGE_NAME } from '../package.json'
 
 export type StorageAdapter = {
-	getItem: (key: string) => object | Promise<object>
+	getItem: (key: string) => object | null | Promise<object | null>
 	setItem: (key: string, value: object) => void | Promise<void>
 	// removeItem: (key: string) => void | Promise<void>
 	broadcast?: (key: string, value: object) => void
@@ -10,7 +10,9 @@ export type StorageAdapter = {
 
 export type StorageAdapterCreate = ({
 	abortController,
-}: { abortController: AbortController }) => StorageAdapter
+}: {
+	abortController: AbortController
+}) => StorageAdapter
 
 export type StorageAdapterCreator<Options> = (
 	options?: Options,
@@ -22,11 +24,7 @@ export const localStorageAdapter: StorageAdapterCreator<{
 	return ({ abortController }) => {
 		return {
 			getItem: (key: string) => {
-				try {
-					return JSON.parse(window[storageType].getItem(key) || '{}')
-				} catch {
-					return {}
-				}
+				return JSON.parse(window[storageType].getItem(key) || 'null')
 			},
 
 			setItem: (key: string, value: object) => {
@@ -44,10 +42,8 @@ export const localStorageAdapter: StorageAdapterCreator<{
 					'storage',
 					(e) => {
 						if (e.storageArea !== window[storageType]) return
-						try {
-							const persistedValue = JSON.parse(e.newValue || 'null')
-							cb(e.key, persistedValue)
-						} catch {}
+
+						cb(e.key, JSON.parse(e.newValue!))
 					},
 					{
 						signal: AbortSignal.any([
@@ -68,11 +64,11 @@ export const localStorageAdapter: StorageAdapterCreator<{
 export const memoryStorageAdapter: StorageAdapterCreator<never> = () => {
 	return ({ abortController }) => {
 		const storage = new Map<string, object>()
-		const channel = new BroadcastChannel(packageName)
+		const channel = new BroadcastChannel(PACKAGE_NAME)
 
 		return {
 			getItem: (key: string) => {
-				return storage.get(key) || {}
+				return storage.get(key) || null
 			},
 
 			setItem: (key: string, value: object) => {
@@ -84,7 +80,7 @@ export const memoryStorageAdapter: StorageAdapterCreator<never> = () => {
 			// },
 
 			broadcast: (key: string, value: object) => {
-				channel.postMessage({ key, themes: value })
+				channel.postMessage({ key, value })
 			},
 
 			watch: (cb) => {
@@ -93,7 +89,7 @@ export const memoryStorageAdapter: StorageAdapterCreator<never> = () => {
 				channel.addEventListener(
 					'message',
 					(e) => {
-						cb(e.data.key, e.data.themes)
+						cb(e.data.key, e.data.value)
 					},
 					{
 						signal: AbortSignal.any([

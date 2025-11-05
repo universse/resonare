@@ -56,10 +56,10 @@ export async function updateDom({
 		config,
 	})
 
-	themeStore.subscribe((_, resolvedThemes) => {
-		for (const [theme, optionKey] of Object.entries(resolvedThemes)) {
-			document.documentElement.dataset[theme] = optionKey
-		}
+	themeStore.subscribe(({ resolvedThemes }) => {
+		Object.entries(resolvedThemes).forEach(([theme, option]) => {
+			document.documentElement.dataset[theme] = option
+		})
 	})
 
 	await themeStore.restore()

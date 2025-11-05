@@ -8,13 +8,4 @@ export default defineConfig({
 		enabled: false,
 	},
 	integrations: [react()],
-	vite: {
-		resolve: {
-			alias: {
-				...(process.env.NODE_ENV === 'production' && {
-					'react-dom/server': 'react-dom/server.edge',
-				}),
-			},
-		},
-	},
 })

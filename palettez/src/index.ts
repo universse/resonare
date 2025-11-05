@@ -19,7 +19,10 @@ export type ThemeConfig = Record<
 	}
 >
 
-type KeyedThemeConfig = Record<string, Record<string, ThemeOption>>
+// { [themeKey]: { [optionKey]: ThemeOption } }
+type KeyedThemeConfig<T extends ThemeConfig> = {
+	[K in keyof T]: Record<string, ThemeOption>
+}
 
 export type Themes<T extends ThemeConfig> = {
 	[K in keyof T]: T[K]['options'] extends Array<infer U>
@@ -31,15 +34,23 @@ export type Themes<T extends ThemeConfig> = {
 		: never
 }
 
-type Listener<T extends ThemeConfig> = (
-	updatedThemes: Themes<T>,
-	resolvedThemes: Themes<T>,
-) => void
+type Listener<T extends ThemeConfig> = (value: {
+	themes: Themes<T>
+	resolvedThemes: Themes<T>
+}) => void
+
+type PersistedState<T extends ThemeConfig> = {
+	version: 1
+	themes: Themes<T>
+	systemOptions: {
+		[K in keyof T]?: [Themes<T>[K], Themes<T>[K]]
+	}
+}
 
 export type ThemeStoreOptions<T extends ThemeConfig> = {
 	key?: string
 	config: T
-	initialThemes?: Partial<Themes<T>>
+	initialState?: Partial<PersistedState<T>>
 	storage?: StorageAdapterCreate
 }
 
@@ -90,50 +101,66 @@ const isClient = !!(
 )
 
 export class ThemeStore<T extends ThemeConfig> {
-	#options: Required<Omit<ThemeStoreOptions<T>, 'config'>> & {
-		config: KeyedThemeConfig
-	}
-	#storage: StorageAdapter
-
 	#defaultThemes: Themes<T>
 	#currentThemes: Themes<T>
-	#resolvedOptionsByTheme: Record<string, Record<string, string>>
+
+	#options: Required<Omit<ThemeStoreOptions<T>, 'config' | 'initialState'>> & {
+		config: KeyedThemeConfig<T>
+	}
+
+	#systemOptions: PersistedState<T>['systemOptions']
+
+	#storage: StorageAdapter
 
 	#listeners: Set<Listener<T>> = new Set<Listener<T>>()
+
+	#mediaQueryCache: Record<string, MediaQueryList>
+
 	#abortController = new AbortController()
 
 	constructor({
 		key = PACKAGE_NAME,
 		config,
-		initialThemes = {},
+		initialState = {},
 		storage = localStorageAdapter(),
 	}: ThemeStoreOptions<T>) {
-		const keyedConfig: KeyedThemeConfig = Object.fromEntries(
-			Object.entries(config).map(([themeKey, { options }]) => [
-				themeKey,
-				Object.fromEntries(
-					options.map((option) => {
-						return typeof option === 'string'
-							? [option, { value: option }]
-							: [option.value, option]
-					}),
-				),
-			]),
-		)
+		const keyedConfig: Record<string, Record<string, ThemeOption>> = {}
+		const systemOptions: Record<string, [string, string]> =
+			initialState.systemOptions || {}
 
-		this.#options = { key, config: keyedConfig, initialThemes, storage }
+		Object.entries(config).forEach(([themeKey, { options }]) => {
+			keyedConfig[themeKey] = keyedConfig[themeKey] || {}
+
+			options.forEach((option) => {
+				if (typeof option === 'string') {
+					keyedConfig[themeKey]![option] = { value: option }
+				} else {
+					if (option.media && !initialState.systemOptions?.[themeKey]) {
+						systemOptions[themeKey] = [option.media[1], option.media[2]]
+					}
+
+					keyedConfig[themeKey]![option.value] = option
+				}
+			})
+		})
+
+		this.#options = {
+			key,
+			config: keyedConfig as KeyedThemeConfig<T>,
+			storage,
+		}
+
+		this.#systemOptions = systemOptions as PersistedState<T>['systemOptions']
 
 		this.#defaultThemes = getDefaultThemes(config)
 
-		this.#currentThemes = { ...this.#defaultThemes, ...initialThemes }
+		this.#currentThemes = { ...this.#defaultThemes, ...initialState.themes }
 
 		this.#storage = this.#options.storage({
 			abortController: this.#abortController,
 		})
 
-		this.#resolvedOptionsByTheme = Object.fromEntries(
-			Object.keys(keyedConfig).map((themeKey) => [themeKey, {}]),
-		)
+		this.#mediaQueryCache = {}
 	}
 
 	getThemes = (): Themes<T> => {
@@ -154,69 +181,102 @@ export class ThemeStore<T extends ThemeConfig> {
 
 		this.#setThemesAndNotify({ ...this.#currentThemes, ...updatedThemes })
 
-		await this.#storage.setItem(this.#options.key, this.#currentThemes)
+		const stateToPersist = this.getStateToPersist()
 
-		this.#storage.broadcast?.(this.#options.key, this.#currentThemes)
+		await this.#storage.setItem(this.#options.key, stateToPersist)
+
+		this.#storage.broadcast?.(this.#options.key, stateToPersist)
+	}
+
+	updateSystemOption = <K extends keyof T>(
+		themeKey: K,
+		[ifMatch, ifNotMatch]: [Themes<T>[K], Themes<T>[K]],
+	) => {
+		this.#systemOptions[themeKey] = [ifMatch, ifNotMatch]
+
+		this.setThemes({ ...this.#currentThemes })
+	}
+
+	getStateToPersist = (): PersistedState<T> => {
+		return {
+			version: 1,
+			themes: this.#currentThemes,
+			systemOptions: this.#systemOptions,
+		}
 	}
 
 	restore = async (): Promise<void> => {
-		const persistedThemes = await this.#storage.getItem(this.#options.key)
+		let persistedState = await this.#storage.getItem(this.#options.key)
 
-		for (const key of Object.keys(persistedThemes)) {
-			if (!Object.hasOwn(this.#defaultThemes, key)) {
-				delete persistedThemes[key as keyof typeof persistedThemes]
+		if (!persistedState) {
+			this.#setThemesAndNotify({ ...this.#defaultThemes })
+			return
+		}
+
+		// for backwards compatibility
+		if (!Object.hasOwn(persistedState, 'version')) {
+			persistedState = {
+				version: 1,
+				themes: persistedState,
+				systemOptions: this.#systemOptions,
 			}
 		}
 
-		this.#setThemesAndNotify({ ...this.#defaultThemes, ...persistedThemes })
+		this.#systemOptions = {
+			...this.#systemOptions,
+			...persistedState.systemOptions,
+		}
+
+		this.#setThemesAndNotify({
+			...this.#defaultThemes,
+			...persistedState.themes,
+		})
 	}
 
-	// clear = async (): Promise<void> => {
-	// 	this.#setThemesAndNotify({ ...this.#defaultThemes })
+	subscribe = (
+		callback: Listener<T>,
+		{ immediate = false }: { immediate?: boolean } = {},
+	): (() => void) => {
+		if (immediate) {
+			callback({
+				themes: this.#currentThemes,
+				resolvedThemes: this.#resolveThemes(),
+			})
+		}
 
-	// 	await this.#storage.removeItem(this.#options.key)
-
-	// 	this.#storage.broadcast?.(this.#options.key, this.#currentThemes)
-	// }
-
-	subscribe = (callback: Listener<T>): (() => void) => {
 		this.#listeners.add(callback)
 
 		return () => {
 			this.#listeners.delete(callback)
-
-			if (this.#listeners.size === 0) {
-				this.destroy()
-			}
 		}
 	}
 
-	sync = (): (() => void) => {
+	sync = (): (() => void) | undefined => {
 		if (!this.#storage.watch) {
-			throw new Error(
+			console.warn(
 				`[${PACKAGE_NAME}] No watch method was provided for storage.`,
 			)
+
+			return
 		}
 
-		return this.#storage.watch((key, persistedThemes) => {
+		return this.#storage.watch((key, persistedState) => {
 			if (key !== this.#options.key) return
 
-			this.#setThemesAndNotify(
-				(persistedThemes as Themes<T>) || this.#defaultThemes,
-			)
+			this.#systemOptions = (persistedState as PersistedState<T>).systemOptions
+
+			this.#setThemesAndNotify((persistedState as PersistedState<T>).themes)
 		})
 	}
 
-	destroy = (): void => {
+	_destroy = (): void => {
 		this.#listeners.clear()
 		this.#abortController.abort()
-		registry.delete(this.#options.key)
 	}
 
 	#setThemesAndNotify = (themes: Themes<T>): void => {
 		this.#currentThemes = themes
-		const resolvedThemes = this.#resolveThemes()
-		this.#notify(resolvedThemes)
+		this.#notify()
 	}
 
 	#resolveThemes = (): Themes<T> => {
@@ -244,27 +304,20 @@ export class ThemeStore<T extends ThemeConfig> {
 			console.warn(
 				`[${PACKAGE_NAME}] Option with key "media" cannot be resolved in server environment.`,
 			)
+
 			return option.value
 		}
 
-		if (!this.#resolvedOptionsByTheme[themeKey]![option.value]) {
-			const {
-				media: [media, ifMatch, ifNotMatch],
-			} = option
+		const [mediaQuery] = option.media
 
-			const mq = window.matchMedia(media)
+		if (!this.#mediaQueryCache[mediaQuery]) {
+			const mediaQueryList = window.matchMedia(mediaQuery)
 
-			this.#resolvedOptionsByTheme[themeKey]![option.value] = mq.matches
-				? ifMatch
-				: ifNotMatch
+			this.#mediaQueryCache[mediaQuery] = mediaQueryList
 
-			mq.addEventListener(
+			mediaQueryList.addEventListener(
 				'change',
-				(e) => {
-					this.#resolvedOptionsByTheme[themeKey]![option.value] = e.matches
-						? ifMatch
-						: ifNotMatch
-
+				() => {
 					if (this.#currentThemes[themeKey] === option.value) {
 						this.#setThemesAndNotify({ ...this.#currentThemes })
 					}
@@ -273,44 +326,70 @@ export class ThemeStore<T extends ThemeConfig> {
 			)
 		}
 
-		return this.#resolvedOptionsByTheme[themeKey]![option.value]!
+		const [ifMatch, ifNotMatch] = this.#systemOptions[themeKey]!
+
+		return this.#mediaQueryCache[mediaQuery].matches ? ifMatch : ifNotMatch
 	}
 
-	#notify = (resolvedThemes: Themes<T>): void => {
+	#notify = (): void => {
 		for (const listener of this.#listeners) {
-			listener(this.#currentThemes, resolvedThemes)
+			listener({
+				themes: this.#currentThemes,
+				resolvedThemes: this.#resolveThemes(),
+			})
 		}
 	}
 }
 
-const registry = new Map<string, ThemeStore<ThemeConfig>>()
+class Registry {
+	#registry = new Map<string, ThemeStore<ThemeConfig>>()
 
-export function createThemeStore<T extends ThemeConfig>(
-	options: ThemeStoreOptions<T>,
-): ThemeStore<T> {
-	const storeKey = options.key || PACKAGE_NAME
+	create = <T extends ThemeConfig>(
+		options: ThemeStoreOptions<T>,
+	): ThemeStore<T> => {
+		const storeKey = options.key || PACKAGE_NAME
 
-	if (registry.has(storeKey)) {
-		registry.get(storeKey)!.destroy()
+		if (this.#registry.has(storeKey)) {
+			this.destroy(storeKey as any)
+		}
+
+		const themeStore = new ThemeStore<T>(options)
+
+		this.#registry.set(storeKey, themeStore as ThemeStore<ThemeConfig>)
+
+		return themeStore
 	}
 
-	const themeStore = new ThemeStore<T>(options)
+	get = <T extends keyof ThemeStoreRegistry>(key?: T) => {
+		const storeKey = key || PACKAGE_NAME
 
-	registry.set(storeKey, themeStore as ThemeStore<ThemeConfig>)
+		if (!this.#registry.has(storeKey)) {
+			throw new Error(
+				`[${PACKAGE_NAME}] Theme store with key '${storeKey}' could not be found. Please run \`createThemeStore\` with key '${storeKey}' first.`,
+			)
+		}
 
-	return themeStore
-}
-
-export function getThemeStore<T extends keyof ThemeStoreRegistry>(key?: T) {
-	const storeKey = key || PACKAGE_NAME
-
-	if (!registry.has(storeKey)) {
-		throw new Error(
-			`[${PACKAGE_NAME}] Theme store with key '${storeKey}' could not be found. Please run \`createThemeStore\` with key '${storeKey}' first.`,
-		)
+		return this.#registry.get(storeKey)!
 	}
 
-	return registry.get(storeKey)! as ThemeStoreRegistry[T]
+	destroy = <T extends keyof ThemeStoreRegistry>(key?: T) => {
+		const storeKey = key || PACKAGE_NAME
+
+		if (!this.#registry.has(storeKey)) {
+			throw new Error(
+				`[${PACKAGE_NAME}] Theme store with key '${storeKey}' could not be found. Please run \`createThemeStore\` with key '${storeKey}' first.`,
+			)
+		}
+
+		this.#registry.get(storeKey)!._destroy()
+		this.#registry.delete(storeKey)
+	}
 }
+
+const registry = new Registry()
+
+export const createThemeStore = registry.create
+export const getThemeStore = registry.get
+export const destroyThemeStore = registry.destroy
 
 export interface ThemeStoreRegistry {}

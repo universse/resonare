@@ -8,6 +8,8 @@ const emptyStore = {
 	getThemes: () => emptyObject,
 	getResolvedThemes: () => emptyObject,
 	setThemes: noop,
+	updateSystemOption: noop,
+	getStateToPersist: noop,
 	restore: noop,
 	sync: noop,
 	// clear: noop,
@@ -28,22 +30,22 @@ export function usePalettez<T extends ThemeConfig>(
 		getThemes,
 		getResolvedThemes,
 		setThemes,
+		updateSystemOption,
+		getStateToPersist,
 		restore,
 		sync,
 		// clear,
 		subscribe,
 	} = isMounted ? getStore() : (emptyStore as unknown as ThemeStore<T>)
 
-	const themes = React.useSyncExternalStore(
-		React.useCallback((callback) => subscribe(callback), [subscribe]),
-		getThemes,
-		getThemes,
-	)
+	const themes = React.useSyncExternalStore(subscribe, getThemes, getThemes)
 
 	return {
 		themes,
 		resolvedThemes: getResolvedThemes(),
 		setThemes,
+		updateSystemOption,
+		getStateToPersist,
 		restore,
 		sync,
 		// clear,

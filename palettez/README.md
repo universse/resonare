@@ -59,7 +59,7 @@ It's recommended to initialize Palettez in a synchronous script to avoid theme f
       },
     })
 
-    themeStore.subscribe((_, resolvedThemes) => {
+    themeStore.subscribe(({ resolvedThemes }) => {
       for (const [theme, optionKey] of Object.entries(resolvedThemes)) {
         document.documentElement.dataset[theme] = optionKey
       }
@@ -71,13 +71,14 @@ It's recommended to initialize Palettez in a synchronous script to avoid theme f
 </script>
 ```
 
-If you are using TypeScript, add `palettez/global` to `compilerOptions.types` in `tsconfig.json`.
+If you are using TypeScript, add `node_modules/palettez/global.d.ts` to `include` in `tsconfig.json`.
 
 ```json
 {
-  "compilerOptions": {
-    "types": ["palettez/global"]
-  }
+  "include": [
+    "node_modules/palettez/global.d.ts",
+    // ...
+  ]
 }
 ```
 
@@ -117,38 +118,36 @@ const config = {
 } as const satisfies ThemeConfig
 
 declare module 'palettez' {
-	interface ThemeStoreRegistry {
-		palettez: ThemeStore<typeof config>
-	}
+  interface ThemeStoreRegistry {
+    palettez: ThemeStore<typeof config>
+  }
 }
 
 
 const themeStore = createThemeStore({
   // optional, default 'palettez'
-  // should be unique, also used as storage key
+  // should be unique, also used as client storage key
   key: 'palettez',
 
   // required, specify theme and options
   config,
 
   // optional, useful for SSR
-  initialThemes: {
-    colorScheme: 'dark',
-    contrast: 'high',
+  initialState: {
+    themes: {
+      colorScheme: 'dark',
+      contrast: 'high',
+    },
   },
 
-  // optional, specify your own storage solution
+  // optional, specify your own client storage
   // localStorage is used by default
   storage: ({ abortController }) => ({
-    getItem: async (key: string) => {
-      try {
-        return JSON.parse(localStorage.getItem(key) || 'null')
-      } catch {
-        return null
-      }
+    getItem: (key: string) => {
+      return JSON.parse(localStorage.getItem(key) || 'null')
     },
 
-    setItem: async (key: string, value: object) => {
+    setItem: (key: string, value: object) => {
       localStorage.setItem(key, JSON.stringify(value))
     },
 
@@ -159,8 +158,8 @@ const themeStore = createThemeStore({
         'storage',
         (e) => {
           if (e.storageArea !== localStorage) return
-          const persistedThemes = JSON.parse(e.newValue || 'null')
-          cb(e.key, persistedThemes)
+
+          cb(e.key, JSON.parse(e.newValue!))
         },
         {
           signal: AbortSignal.any([
@@ -170,7 +169,9 @@ const themeStore = createThemeStore({
         },
       )
 
-      return () => controller.abort()
+      return () => {
+        controller.abort()
+      }
     },
   })
 })
@@ -183,6 +184,15 @@ import { getThemeStore } from 'palettez'
 
 // Get an existing theme store by key
 const themeStore = getThemeStore('palettez') 
+```
+
+### `destroyThemeStore`
+
+```ts
+import { destroyThemeStore } from 'palettez'
+
+// Get an existing theme store by key
+const themeStore = destroyThemeStore('palettez') 
 ```
 
 ### ThemeStore Methods
@@ -198,20 +208,27 @@ interface ThemeStore<T> {
   // update theme
   setThemes(themes: Partial<Record<string, string>>): Promise<void>
 
-  // restore persisted theme selection from storage
+  // get state to persist, useful for server-side persistence
+  // to restore, pass the returned object to initialState
+  getStateToPersist(): object
+
+  // restore persisted theme selection from client storage
   restore(): Promise<void>
 
   // sync theme selection across tabs/windows
   sync(): () => void
 
   // subscribe to theme changes
-  subscribe(callback: (
-    themes: Record<string, string>,
-    resolvedThemes: Record<string, string>
-  ) => void): () => void
-
-  // clean up resources
-  destroy(): void
+  subscribe(
+    callback: ({
+      themes,
+      resolvedThemes,
+    }: {
+      themes: Record<string, string>
+      resolvedThemes: Record<string, string>
+    }) => void,
+    options?: { immediate?: boolean }
+  ): () => void
 }
 ```
 
@@ -253,7 +270,7 @@ function ThemeSelect() {
 
 ### Server-side persistence
 
-If you are storing theme selection on the server, you can choose to use `memoryStorageAdapter` to avoid storing any data client-side. There's no need to initialize Palettez in a synchronous script. Ensure you pass the persisted theme selection when initializing Palettez as `initialThemes`.
+If you are storing theme selection on the server, you can choose to use `memoryStorageAdapter` to avoid storing any data client-side. There's no need to initialize Palettez in a synchronous script. Ensure you pass the persisted theme selection when initializing Palettez as `initialState`.
 
 ```tsx
 import {
@@ -281,12 +298,16 @@ export function ThemeSelect({
   const [themeStore] = React.useState(() =>
     createThemeStore({
       config,
-      initialThemes: persistedServerThemes,
+      initialState: {
+        themes: persistedServerThemes,
+      },
       storage: memoryStorageAdapter(),
     }),
   )
 
-  const { themes, setThemes } = usePalettez(() => themeStore)
+  const { themes, setThemes } = usePalettez(() => themeStore, {
+    initOnMount: true,
+  })
 
   return getThemesAndOptions(config).map(([theme, options]) => (
     <div key={theme}>

@@ -3,11 +3,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	createThemeStore,
+	destroyThemeStore,
 	getThemeStore,
 	getThemesAndOptions,
 	type ThemeConfig,
+	type ThemeStore,
 	type ThemeStoreOptions,
-} from '../src'
+} from '../dist'
 
 const mockConfig = {
 	colorScheme: {
@@ -17,7 +19,9 @@ const mockConfig = {
 				media: ['(prefers-color-scheme: dark)', 'dark', 'light'],
 			},
 			'light',
+			'light-modern',
 			'dark',
+			'dark-modern',
 		],
 	},
 	contrast: {
@@ -25,7 +29,7 @@ const mockConfig = {
 	},
 } as const satisfies ThemeConfig
 
-declare module '../src' {
+declare module '../dist' {
 	interface ThemeStoreRegistry {
 		palettez: ThemeStore<typeof mockConfig>
 	}
@@ -34,7 +38,7 @@ declare module '../src' {
 const mockStorage = {
 	getItem: vi.fn(),
 	setItem: vi.fn(),
-	// removeItem: vi.fn(),
+	removeItem: vi.fn(),
 	watch: vi.fn(),
 }
 
@@ -42,14 +46,17 @@ const mockOptions = {
 	key: 'palettez',
 	config: mockConfig,
 	storage: () => mockStorage,
-} satisfies ThemeStoreOptions<typeof mockConfig>
+} as const satisfies ThemeStoreOptions<typeof mockConfig>
 
 describe('getThemesAndOptions', () => {
 	it('should return the themes and options', () => {
 		const themesAndOptions = getThemesAndOptions(mockConfig)
 
 		expect(themesAndOptions).toEqual([
-			['colorScheme', ['system', 'light', 'dark']],
+			[
+				'colorScheme',
+				['system', 'light', 'light-modern', 'dark', 'dark-modern'],
+			],
 			['contrast', ['standard', 'high']],
 		])
 	})
@@ -96,29 +103,89 @@ describe('ThemeStore', () => {
 
 		expect(themes).toEqual({ colorScheme: 'dark', contrast: 'high' })
 
-		expect(mockStorage.setItem).toHaveBeenCalledWith('palettez', {
-			colorScheme: 'dark',
-			contrast: 'high',
-		})
+		expect(mockStorage.setItem).toBeCalledWith(
+			'palettez',
+			themeStore.getStateToPersist(),
+		)
 	})
 
 	it('should respond to media query changes', async () => {
+		setSystemColorScheme('dark')
+
 		const themeStore = createThemeStore(mockOptions)
 
+		const resolvedThemes1 = themeStore.getResolvedThemes()
+
+		expect(resolvedThemes1).toEqual({
+			colorScheme: 'dark',
+			contrast: 'standard',
+		})
+
+		themeStore.updateSystemOption('colorScheme', [
+			'dark-modern',
+			'light-modern',
+		])
+
+		const resolvedThemes2 = themeStore.getResolvedThemes()
+
+		expect(resolvedThemes2).toEqual({
+			colorScheme: 'dark-modern',
+			contrast: 'standard',
+		})
+
+		expect(mockStorage.setItem).toBeCalledWith('palettez', {
+			version: 1,
+			themes: {
+				colorScheme: 'system',
+				contrast: 'standard',
+			},
+			systemOptions: {
+				colorScheme: ['dark-modern', 'light-modern'],
+			},
+		})
+	})
+
+	it('should restore from initial state', async () => {
 		setSystemColorScheme('dark')
+
+		const themeStore = createThemeStore({
+			...mockOptions,
+			initialState: {
+				version: 1,
+				themes: {
+					colorScheme: 'system',
+					contrast: 'high',
+				},
+				systemOptions: {
+					colorScheme: ['dark-modern', 'light-modern'],
+				},
+			},
+		})
+
+		const themes = themeStore.getThemes()
+
+		expect(themes).toEqual({ colorScheme: 'system', contrast: 'high' })
 
 		const resolvedThemes = themeStore.getResolvedThemes()
 
 		expect(resolvedThemes).toEqual({
-			colorScheme: 'dark',
-			contrast: 'standard',
+			colorScheme: 'dark-modern',
+			contrast: 'high',
 		})
 	})
 
-	it('should restore themes from storage', async () => {
+	it('should restore from storage', async () => {
+		setSystemColorScheme('dark')
+
 		mockStorage.getItem.mockResolvedValue({
-			colorScheme: 'dark',
-			contrast: 'high',
+			version: 1,
+			themes: {
+				colorScheme: 'system',
+				contrast: 'high',
+			},
+			systemOptions: {
+				colorScheme: ['dark-modern', 'light-modern'],
+			},
 		})
 
 		const themeStore = createThemeStore(mockOptions)
@@ -127,74 +194,62 @@ describe('ThemeStore', () => {
 
 		const themes = themeStore.getThemes()
 
-		expect(themes).toEqual({ colorScheme: 'dark', contrast: 'high' })
-	})
-
-	// it('should clear themes', async () => {
-	// 	const themeStore = createThemeStore(mockOptions)
-
-	// 	themeStore.setThemes({ colorScheme: 'dark', contrast: 'high' })
-
-	// 	themeStore.clear()
-
-	// 	const themes = themeStore.getThemes()
-
-	// 	expect(themes).toEqual({ colorScheme: 'system', contrast: 'standard' })
-
-	// 	expect(mockStorage.removeItem).toHaveBeenCalledWith('palettez')
-	// })
-
-	it('should subscribe to theme changes', async () => {
-		const themeStore = createThemeStore(mockOptions)
-
-		const mockListener = vi.fn()
-
-		themeStore.subscribe(mockListener)
-
-		await themeStore.setThemes({ contrast: 'high' })
-
-		expect(mockListener).toHaveBeenCalledWith(
-			{ colorScheme: 'system', contrast: 'high' },
-			{ colorScheme: 'light', contrast: 'high' },
-		)
-	})
-
-	it('should destroy', async () => {
-		const themeStore = createThemeStore(mockOptions)
-
-		const mockListener = vi.fn()
-
-		const unsubscribe = themeStore.subscribe(mockListener)
-		unsubscribe()
-
-		themeStore.setThemes({ contrast: 'high' })
-
-		expect(mockListener).not.toHaveBeenCalled()
-
-		setSystemColorScheme('dark')
+		expect(themes).toEqual({ colorScheme: 'system', contrast: 'high' })
 
 		const resolvedThemes = themeStore.getResolvedThemes()
 
 		expect(resolvedThemes).toEqual({
-			colorScheme: 'light',
+			colorScheme: 'dark-modern',
 			contrast: 'high',
 		})
+	})
 
-		expect(() => getThemeStore(mockOptions.key as 'palettez')).toThrow()
+	it('should subscribe and unsubscribe to theme changes', async () => {
+		const themeStore = createThemeStore(mockOptions)
+
+		const mockListener = vi.fn()
+
+		const unsubscribe = themeStore.subscribe(mockListener, { immediate: true })
+
+		await themeStore.setThemes({ contrast: 'high' })
+
+		unsubscribe()
+
+		themeStore.setThemes({ contrast: 'standard' })
+
+		expect(mockListener).toHaveBeenNthCalledWith(1, {
+			themes: { colorScheme: 'system', contrast: 'standard' },
+			resolvedThemes: { colorScheme: 'light', contrast: 'standard' },
+		})
+
+		expect(mockListener).toHaveBeenNthCalledWith(2, {
+			themes: { colorScheme: 'system', contrast: 'high' },
+			resolvedThemes: { colorScheme: 'light', contrast: 'high' },
+		})
+
+		expect(mockListener).toHaveBeenCalledTimes(2)
 	})
 })
 
 describe('create and read functions', () => {
 	it('should create and read a ThemeStore instance', () => {
-		const createdStore = createThemeStore(mockOptions)
+		const themeStore = createThemeStore(mockOptions)
 
 		const store = getThemeStore('palettez')
 
-		expect(store).toBe(createdStore)
+		expect(store).toBe(themeStore)
+	})
+
+	it('should destroy', () => {
+		createThemeStore(mockOptions)
+
+		destroyThemeStore(mockOptions.key)
+
+		expect(() => getThemeStore(mockOptions.key)).toThrow()
 	})
 
 	it('should throw an error when reading a non-existent ThemeStore', () => {
-		expect(() => getThemeStore('non-existent')).toThrow()
+		expect(() => getThemeStore('non-existent' as any)).toThrow()
 	})
 })
 

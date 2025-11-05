@@ -1,6 +1,6 @@
 {
 	"name": "palettez",
-	"version": "0.0.31",
+	"version": "0.1.0",
 	"description": "Palettez",
 	"keywords": [
 		"theming"
@@ -17,50 +17,51 @@
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js",
-			"default": "./dist/index.js"
+			"import": "./dist/index.js"
+		},
+		"./global": {
+			"types": "./dist/umd.d.ts"
+		},
+		"./raw": {
+			"import": "./dist/palettez.iife.min.js"
 		},
 		"./react": {
 			"types": "./dist/react.d.ts",
-			"import": "./dist/react.js",
-			"default": "./dist/react.js"
+			"import": "./dist/react.js"
 		},
 		"./storage": {
 			"types": "./dist/storage.d.ts",
-			"import": "./dist/storage.js",
-			"default": "./dist/storage.js"
-		},
-		"./raw": {
-			"import": "./dist/palettez.min.js"
-		},
-		"./global": {
-			"types": "./global.d.ts"
+			"import": "./dist/storage.js"
 		}
 	},
-	"jsdelivr": "./dist/palettez.min.js",
-	"unpkg": "./dist/palettez.min.js",
+	"jsdelivr": "./dist/palettez.iife.min.js",
+	"unpkg": "./dist/palettez.iife.min.js",
 	"types": "./dist/index.d.ts",
 	"files": [
 		"dist",
-		"global.d.ts",
-		"palettez.min.txt.d.ts"
+		"global.d.ts"
 	],
 	"scripts": {
-		"build": "tsup",
-		"dev": "tsup --watch",
+		"build": "tsdown",
+		"dev": "tsdown --watch",
 		"size": "pnpm build && size-limit",
 		"test": "vitest"
 	},
+	"dependencies": {
+		"react-compiler-runtime": "1.0.0"
+	},
 	"devDependencies": {
 		"@size-limit/preset-small-lib": "11.2.0",
-		"@types/react": "19.1.8",
-		"jsdom": "26.1.0",
-		"react": "19.1.1",
-		"react-dom": "19.1.1",
+		"@types/react": "19.2.2",
+		"@vitejs/plugin-react": "5.1.0",
+		"babel-plugin-react-compiler": "1.0.0",
+		"jsdom": "27.1.0",
+		"react": "19.2.0",
+		"react-dom": "19.2.0",
 		"size-limit": "11.2.0",
-		"tsup": "8.5.0",
-		"typescript": "5.8.3",
-		"vitest": "3.2.4"
+		"tsdown": "0.16.0",
+		"typescript": "5.9.3",
+		"vitest": "4.0.7"
 	},
 	"peerDependencies": {
 		"react": "^18.0.0 || ^19.0.0"
