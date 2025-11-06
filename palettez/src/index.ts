@@ -39,12 +39,38 @@ type Listener<T extends ThemeConfig> = (value: {
 	resolvedThemes: Themes<T>
 }) => void
 
+type ThemeKeysWithSystemOption<T extends ThemeConfig> = {
+	[K in keyof T]: T[K]['options'] extends Array<infer U>
+		? U extends { media: [string, string, string] }
+			? K
+			: never
+		: never
+}[keyof T]
+
+type NonSystemOptionValues<
+	T extends ThemeConfig,
+	K extends keyof T,
+> = T[K]['options'] extends Array<infer U>
+	? U extends string
+		? U
+		: U extends ThemeOption
+			? U extends { media: [string, string, string] }
+				? never
+				: U['value']
+			: never
+	: never
+
+type SystemOptions<T extends ThemeConfig> = {
+	[K in ThemeKeysWithSystemOption<T>]?: [
+		NonSystemOptionValues<T, K>,
+		NonSystemOptionValues<T, K>,
+	]
+}
+
 type PersistedState<T extends ThemeConfig> = {
 	version: 1
 	themes: Themes<T>
-	systemOptions: {
-		[K in keyof T]?: [Themes<T>[K], Themes<T>[K]]
-	}
+	systemOptions: SystemOptions<T>
 }
 
 export type ThemeStoreOptions<T extends ThemeConfig> = {
@@ -108,7 +134,7 @@ export class ThemeStore<T extends ThemeConfig> {
 		config: KeyedThemeConfig<T>
 	}
 
-	#systemOptions: PersistedState<T>['systemOptions']
+	#systemOptions: SystemOptions<T>
 
 	#storage: StorageAdapter
 
@@ -125,8 +151,9 @@ export class ThemeStore<T extends ThemeConfig> {
 		storage = localStorageAdapter(),
 	}: ThemeStoreOptions<T>) {
 		const keyedConfig: Record<string, Record<string, ThemeOption>> = {}
-		const systemOptions: Record<string, [string, string]> =
-			initialState.systemOptions || {}
+		const systemOptions: Record<string, [string, string]> = {
+			...initialState.systemOptions,
+		}
 
 		Object.entries(config).forEach(([themeKey, { options }]) => {
 			keyedConfig[themeKey] = keyedConfig[themeKey] || {}
@@ -135,7 +162,7 @@ export class ThemeStore<T extends ThemeConfig> {
 				if (typeof option === 'string') {
 					keyedConfig[themeKey]![option] = { value: option }
 				} else {
-					if (option.media && !initialState.systemOptions?.[themeKey]) {
+					if (option.media && !Object.hasOwn(systemOptions, themeKey)) {
 						systemOptions[themeKey] = [option.media[1], option.media[2]]
 					}
 
@@ -150,7 +177,7 @@ export class ThemeStore<T extends ThemeConfig> {
 			storage,
 		}
 
-		this.#systemOptions = systemOptions as PersistedState<T>['systemOptions']
+		this.#systemOptions = systemOptions as SystemOptions<T>
 
 		this.#defaultThemes = getDefaultThemes(config)
 
@@ -188,9 +215,12 @@ export class ThemeStore<T extends ThemeConfig> {
 		this.#storage.broadcast?.(this.#options.key, stateToPersist)
 	}
 
-	updateSystemOption = <K extends keyof T>(
+	updateSystemOption = <K extends ThemeKeysWithSystemOption<T>>(
 		themeKey: K,
-		[ifMatch, ifNotMatch]: [Themes<T>[K], Themes<T>[K]],
+		[ifMatch, ifNotMatch]: [
+			NonSystemOptionValues<T, K>,
+			NonSystemOptionValues<T, K>,
+		],
 	) => {
 		this.#systemOptions[themeKey] = [ifMatch, ifNotMatch]
 
