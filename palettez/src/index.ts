@@ -390,7 +390,9 @@ class Registry {
 		return themeStore
 	}
 
-	get = <T extends keyof ThemeStoreRegistry>(key?: T) => {
+	get = <T extends keyof ThemeStoreRegistry>(
+		key?: T,
+	): ThemeStore<ThemeStoreRegistry[T]> => {
 		const storeKey = key || PACKAGE_NAME
 
 		if (!this.#registry.has(storeKey)) {
