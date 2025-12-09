@@ -41,16 +41,7 @@ export default defineConfig([
 		minify: !!process.env.CI,
 	},
 	{
-		entry: ['src/index.ts', 'src/storage.ts', 'src/umd.ts'],
-		dts: true,
-
-		platform: 'neutral',
-
-		clean: true,
-		define,
-	},
-	{
-		entry: ['src/react.ts'],
+		entry: ['src/index.ts', 'src/storage.ts', 'src/umd.ts', 'src/react.ts'],
 		dts: true,
 
 		platform: 'neutral',

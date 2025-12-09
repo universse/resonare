@@ -1,6 +1,6 @@
 {
 	"name": "palettez",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "Palettez",
 	"keywords": [
 		"theming"
@@ -51,17 +51,17 @@
 		"react-compiler-runtime": "1.0.0"
 	},
 	"devDependencies": {
-		"@size-limit/preset-small-lib": "11.2.0",
-		"@types/react": "19.2.2",
-		"@vitejs/plugin-react": "5.1.0",
+		"@size-limit/preset-small-lib": "12.0.0",
+		"@types/react": "19.2.7",
+		"@vitejs/plugin-react": "5.1.2",
 		"babel-plugin-react-compiler": "1.0.0",
-		"jsdom": "27.1.0",
-		"react": "19.2.0",
-		"react-dom": "19.2.0",
-		"size-limit": "11.2.0",
-		"tsdown": "0.16.0",
+		"jsdom": "27.3.0",
+		"react": "19.2.1",
+		"react-dom": "19.2.1",
+		"size-limit": "12.0.0",
+		"tsdown": "0.17.2",
 		"typescript": "5.9.3",
-		"vitest": "4.0.7"
+		"vitest": "4.0.15"
 	},
 	"peerDependencies": {
 		"react": "^18.0.0 || ^19.0.0"

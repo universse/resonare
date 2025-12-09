@@ -1,1 +1,1 @@
-declare var DEBUG: boolean
+declare let DEBUG: boolean

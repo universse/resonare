@@ -8,17 +8,17 @@
 		"dev": "astro dev --port 3000"
 	},
 	"dependencies": {
-		"astro": "5.15.3",
+		"astro": "5.16.4",
 		"palettez": "workspace:*",
-		"react": "19.2.0",
-		"react-dom": "19.2.0"
+		"react": "19.2.1",
+		"react-dom": "19.2.1"
 	},
 	"devDependencies": {
-		"@astrojs/cloudflare": "12.6.10",
-		"@astrojs/react": "4.4.1",
-		"@types/react": "19.2.2",
-		"@types/react-dom": "19.2.2",
+		"@astrojs/cloudflare": "12.6.12",
+		"@astrojs/react": "4.4.2",
+		"@types/react": "19.2.7",
+		"@types/react-dom": "19.2.3",
 		"typescript": "5.9.3",
-		"wrangler": "4.45.4"
+		"wrangler": "4.53.0"
 	}
 }
