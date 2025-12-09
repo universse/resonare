@@ -390,9 +390,7 @@ class Registry {
 		return themeStore
 	}
 
-	get = <T extends keyof ThemeStoreRegistry>(
-		key?: T,
-	): ThemeStore<ThemeStoreRegistry[T]> => {
+	get = <T extends keyof ThemeStoreRegistry>(key?: T) => {
 		const storeKey = key || PACKAGE_NAME
 
 		if (!this.#registry.has(storeKey)) {
@@ -401,7 +399,7 @@ class Registry {
 			)
 		}
 
-		return this.#registry.get(storeKey)!
+		return this.#registry.get(storeKey)! as ThemeStoreRegistry[T]
 	}
 
 	destroy = <T extends keyof ThemeStoreRegistry>(key?: T) => {
