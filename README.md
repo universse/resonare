@@ -1,1 +1,1 @@
-./palettez/README.md
+./resonare/README.md

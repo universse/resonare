@@ -4,6 +4,7 @@
 		"baseUrl": ".",
 		"jsx": "react-jsx"
 	},
-	"include": [".astro/types.d.ts", "node_modules/palettez/global.d.ts", "**/*"],
-	"exclude": ["dist", ".wrangler"]
+	"files": ["node_modules/resonare/global.d.ts"],
+	"include": [".astro/types.d.ts", "**/*"],
+	"exclude": [".wrangler", "dist", "node_modules"]
 }

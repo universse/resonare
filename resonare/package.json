@@ -1,14 +1,14 @@
 {
-	"name": "palettez",
-	"version": "0.1.4",
-	"description": "Palettez",
+	"name": "resonare",
+	"version": "0.0.1",
+	"description": "Resonare",
 	"keywords": [
 		"theming"
 	],
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/universse/palettez.git",
-		"directory": "palettez"
+		"url": "https://github.com/universse/resonare.git",
+		"directory": "resonare"
 	},
 	"license": "MIT",
 	"author": "Si Phuoc <phuoc317049@gmail.com>",
@@ -23,7 +23,7 @@
 			"types": "./dist/umd.d.ts"
 		},
 		"./raw": {
-			"import": "./dist/palettez.iife.min.js"
+			"import": "./dist/resonare.iife.min.js"
 		},
 		"./react": {
 			"types": "./dist/react.d.ts",
@@ -34,8 +34,8 @@
 			"import": "./dist/storage.js"
 		}
 	},
-	"jsdelivr": "./dist/palettez.iife.min.js",
-	"unpkg": "./dist/palettez.iife.min.js",
+	"jsdelivr": "./dist/resonare.iife.min.js",
+	"unpkg": "./dist/resonare.iife.min.js",
 	"types": "./dist/index.d.ts",
 	"files": [
 		"dist",
@@ -44,7 +44,7 @@
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch",
-		"size": "pnpm build && size-limit",
+		"size": "size-limit",
 		"test": "vitest"
 	},
 	"dependencies": {

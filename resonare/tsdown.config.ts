@@ -28,11 +28,11 @@ export default defineConfig([
 
 		banner: {
 			js: `/**
-			* ${packageJson.name} v${packageJson.version}
-			*
-			* This source code is licensed under the MIT license found in the
-			* LICENSE file in the root directory of this source tree.
-			*/`,
+	* ${packageJson.name} v${packageJson.version}
+	*
+	* This source code is licensed under the MIT license found in the
+	* LICENSE file in the root directory of this source tree.
+	*/`,
 		},
 		platform: 'browser',
 
@@ -40,6 +40,7 @@ export default defineConfig([
 		define,
 		minify: !!process.env.CI,
 	},
+
 	{
 		entry: ['src/index.ts', 'src/storage.ts', 'src/umd.ts', 'src/react.ts'],
 		dts: true,
