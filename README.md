@@ -1,1 +1,1 @@
-./palettez/README.md
+C:/Users/Phuoc/Desktop/no-sync/wip/resonare/resonare/README.md

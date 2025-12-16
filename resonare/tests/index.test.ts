@@ -31,7 +31,7 @@ const mockConfig = {
 
 declare module '../dist' {
 	interface ThemeStoreRegistry {
-		palettez: ThemeStore<typeof mockConfig>
+		resonare: ThemeStore<typeof mockConfig>
 	}
 }
 
@@ -43,7 +43,7 @@ const mockStorage = {
 }
 
 const mockOptions = {
-	key: 'palettez',
+	key: 'resonare',
 	config: mockConfig,
 	storage: () => mockStorage,
 } as const satisfies ThemeStoreOptions<typeof mockConfig>
@@ -104,7 +104,7 @@ describe('ThemeStore', () => {
 		expect(themes).toEqual({ colorScheme: 'dark', contrast: 'high' })
 
 		expect(mockStorage.setItem).toBeCalledWith(
-			'palettez',
+			'resonare',
 			themeStore.getStateToPersist(),
 		)
 	})
@@ -133,7 +133,7 @@ describe('ThemeStore', () => {
 			contrast: 'standard',
 		})
 
-		expect(mockStorage.setItem).toBeCalledWith('palettez', {
+		expect(mockStorage.setItem).toBeCalledWith('resonare', {
 			version: 1,
 			themes: {
 				colorScheme: 'system',
@@ -235,7 +235,7 @@ describe('create and read functions', () => {
 	it('should create and read a ThemeStore instance', () => {
 		const themeStore = createThemeStore(mockOptions)
 
-		const store = getThemeStore('palettez')
+		const store = getThemeStore('resonare')
 
 		expect(store).toBe(themeStore)
 	})

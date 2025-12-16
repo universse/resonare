@@ -16,7 +16,7 @@ const emptyStore = {
 	subscribe: () => noop,
 }
 
-export function usePalettez<T extends ThemeConfig>(
+export function useResonare<T extends ThemeConfig>(
 	getStore: () => ThemeStore<T>,
 	{ initOnMount = false } = {},
 ) {

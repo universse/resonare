@@ -32,15 +32,15 @@ importers:
       astro:
         specifier: 5.16.4
         version: 5.16.4(@types/node@24.10.2)(jiti@2.6.1)(rollup@4.53.3)(typescript@5.9.3)(yaml@2.7.1)
-      palettez:
-        specifier: workspace:*
-        version: link:../palettez
       react:
         specifier: 19.2.1
         version: 19.2.1
       react-dom:
         specifier: 19.2.1
         version: 19.2.1(react@19.2.1)
+      resonare:
+        specifier: workspace:*
+        version: link:../resonare
     devDependencies:
       '@astrojs/cloudflare':
         specifier: 12.6.12
@@ -61,7 +61,7 @@ importers:
         specifier: 4.53.0
         version: 4.53.0(@cloudflare/workers-types@4.20251209.0)
 
-  palettez:
+  resonare:
     dependencies:
       react-compiler-runtime:
         specifier: 1.0.0
@@ -191,10 +191,6 @@ packages:
     resolution: {integrity: sha512-qMlSxKbpRlAridDExk92nSobyDdpPijUq2DW6oDnUqd0iOGxmQjyqhMIihI9+zv4LPyZdRje2cavWPbCbWm3eA==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/helper-validator-identifier@7.27.1':
-    resolution: {integrity: sha512-D2hP9eA+Sqx1kBZgzxZh0y1trbuU+JoDkiEwqhQ36nodYqJwyEIhPSdMNd7lOm/4io72luTPWH20Yda0xOuUow==}
-    engines: {node: '>=6.9.0'}
-
   '@babel/helper-validator-identifier@7.28.5':
     resolution: {integrity: sha512-qSs4ifwzKJSV39ucNjsvc6WVHs6b7S03sOh2OcHF9UHfVPqWWALUsNUVzhSBiItjRZoLHx7nIarVjqKVusUZ1Q==}
     engines: {node: '>=6.9.0'}
@@ -234,10 +230,6 @@ packages:
 
   '@babel/traverse@7.28.5':
     resolution: {integrity: sha512-TCCj4t55U90khlYkVV/0TfkJkAkUg3jZFA3Neb7unZT8CPok7iiRfaX0F+WnqWqt7OxhOn0uBKXCw4lbL8W0aQ==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/types@7.28.4':
-    resolution: {integrity: sha512-bkFqkLhh3pMBUQQkpVgWDWq/lqzc2678eUyDlTBhRqhCHFguYYGM0Efga7tYk4TogG/3x0EEl66/OQ+WGbWB/Q==}
     engines: {node: '>=6.9.0'}
 
   '@babel/types@7.28.5':
@@ -4161,8 +4153,6 @@ snapshots:
 
   '@babel/helper-string-parser@7.27.1': {}
 
-  '@babel/helper-validator-identifier@7.27.1': {}
-
   '@babel/helper-validator-identifier@7.28.5': {}
 
   '@babel/helper-validator-option@7.27.1': {}
@@ -4205,11 +4195,6 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
-
-  '@babel/types@7.28.4':
-    dependencies:
-      '@babel/helper-string-parser': 7.27.1
-      '@babel/helper-validator-identifier': 7.27.1
 
   '@babel/types@7.28.5':
     dependencies:
@@ -5677,7 +5662,7 @@ snapshots:
 
   babel-plugin-react-compiler@1.0.0:
     dependencies:
-      '@babel/types': 7.28.4
+      '@babel/types': 7.28.5
 
   bail@2.0.2: {}
 

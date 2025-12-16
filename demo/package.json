@@ -9,7 +9,7 @@
 	},
 	"dependencies": {
 		"astro": "5.16.4",
-		"palettez": "workspace:*",
+		"resonare": "workspace:*",
 		"react": "19.2.1",
 		"react-dom": "19.2.1"
 	},

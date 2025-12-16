@@ -1,5 +1,5 @@
 {
-	"name": "palettez-monorepo",
+	"name": "resonare-monorepo",
 	"private": true,
 	"devDependencies": {
 		"@biomejs/biome": "2.3.8",
@@ -9,5 +9,5 @@
 		"@commitlint/config-conventional": "20.2.0",
 		"turbo": "2.6.3"
 	},
-	"packageManager": "pnpm@10.20.0"
+	"packageManager": "pnpm@10.26.0"
 }

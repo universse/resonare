@@ -1,6 +1,6 @@
 [
 	{
-		"path": "dist/palettez.iife.min.js",
+		"path": "dist/resonare.iife.min.js",
 		"limit": "2 KB",
 		"gzip": true
 	}

@@ -1,11 +1,11 @@
+import * as React from 'react'
 import {
 	getThemesAndOptions,
 	type ThemeConfig,
 	type ThemeStore,
-} from 'palettez'
-import pallettezGlobal from 'palettez/raw?raw'
-import { usePalettez } from 'palettez/react'
-import * as React from 'react'
+} from 'resonare'
+import resonareGlobal from 'resonare/raw?raw'
+import { useResonare } from 'resonare/react'
 
 const config = {
 	color: {
@@ -36,7 +36,7 @@ const config = {
 
 const storeKey = 'demo'
 
-declare module 'palettez' {
+declare module 'resonare' {
 	interface ThemeStoreRegistry {
 		demo: ThemeStore<typeof config>
 	}
@@ -51,7 +51,7 @@ export async function updateDom({
 	key: string
 	config: ThemeConfig
 }) {
-	const themeStore = window.palettez.createThemeStore({
+	const themeStore = window.resonare.createThemeStore({
 		key,
 		config,
 	})
@@ -66,7 +66,7 @@ export async function updateDom({
 	themeStore.sync()
 }
 
-export const themeScript = `${pallettezGlobal}
+export const themeScript = `${resonareGlobal}
 (${updateDom.toString()})(${JSON.stringify({ key: storeKey, config })})`
 
 const ThemeLabels = {
@@ -78,8 +78,8 @@ const ThemeLabels = {
 } as const
 
 export function ThemeSelect() {
-	const { themes, setThemes } = usePalettez(() =>
-		window.palettez.getThemeStore(storeKey),
+	const { themes, setThemes } = useResonare(() =>
+		window.resonare.getThemeStore(storeKey),
 	)
 
 	return (

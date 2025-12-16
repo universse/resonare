@@ -4,7 +4,7 @@ import {
 	type StorageAdapterCreate,
 } from './storage'
 
-const PACKAGE_NAME = 'palettez'
+const PACKAGE_NAME = 'resonare'
 
 type ThemeOption = {
 	value: string
@@ -299,7 +299,7 @@ export class ThemeStore<T extends ThemeConfig> {
 		})
 	}
 
-	_destroy = (): void => {
+	___destroy = (): void => {
 		this.#listeners.clear()
 		this.#abortController.abort()
 	}
@@ -411,7 +411,7 @@ class Registry {
 			)
 		}
 
-		this.#registry.get(storeKey)!._destroy()
+		this.#registry.get(storeKey)!.___destroy()
 		this.#registry.delete(storeKey)
 	}
 }

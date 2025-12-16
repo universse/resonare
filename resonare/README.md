@@ -1,4 +1,4 @@
-# Palettez [![Version](https://img.shields.io/npm/v/palettez.svg?labelColor=black&color=blue)](https://www.npmjs.com/package/palettez)
+# Resonare [![Version](https://img.shields.io/npm/v/resonare.svg?labelColor=black&color=blue)](https://www.npmjs.com/package/resonare)
 
 A configuration-based theme store for building deeply personal user interface.
 
@@ -19,32 +19,32 @@ A configuration-based theme store for building deeply personal user interface.
 
 ## Demo
 
-- [Demo](https://palettez.universse.workers.dev)
+- [Demo](https://resonare.universse.workers.dev)
 
 ## Installation
 
 To install:
 
 ```bash
-npm i palettez
+npm i resonare
 # or
-yarn add palettez
+yarn add resonare
 # or
-pnpm add palettez
+pnpm add resonare
 ```
 
 ## Basic Usage
 
-It's recommended to initialize Palettez in a synchronous script to avoid theme flicker on page load. If your project's bundler supports importing static asset as string, you can inline the minified version of Palettez to reduce the number of HTTP requests. Check out the demo for example of this pattern with Vite.
+It's recommended to initialize Resonare in a synchronous script to avoid theme flicker on page load. If your project's bundler supports importing static asset as string, you can inline the minified version of Resonare to reduce the number of HTTP requests. Check out the demo for example of this pattern with Vite.
 
 ```html
-<script src="https://unpkg.com/palettez"></script>
+<script src="https://unpkg.com/resonare"></script>
 <!-- or -->
-<script src="https://cdn.jsdelivr.net/npm/palettez"></script>
+<script src="https://cdn.jsdelivr.net/npm/resonare"></script>
 
 <script>
   ;(async () => {
-    const themeStore = window.palettez.createThemeStore({
+    const themeStore = window.resonare.createThemeStore({
       config: {
         colorScheme: {
           options: [
@@ -71,12 +71,12 @@ It's recommended to initialize Palettez in a synchronous script to avoid theme f
 </script>
 ```
 
-If you are using TypeScript, add `node_modules/palettez/global.d.ts` to `include` in `tsconfig.json`.
+If you are using TypeScript, add `node_modules/resonare/global.d.ts` to `include` in `tsconfig.json`.
 
 ```json
 {
   "include": [
-    "node_modules/palettez/global.d.ts",
+    "node_modules/resonare/global.d.ts",
     // ...
   ]
 }
@@ -87,7 +87,7 @@ If you are using TypeScript, add `node_modules/palettez/global.d.ts` to `include
 ### `createThemeStore`
 
 ```ts
-import { createThemeStore, type ThemeConfig, type ThemeStore } from 'palettez'
+import { createThemeStore, type ThemeConfig, type ThemeStore } from 'resonare'
 
 const config = {
   colorScheme: {
@@ -117,17 +117,17 @@ const config = {
   }
 } as const satisfies ThemeConfig
 
-declare module 'palettez' {
+declare module 'resonare' {
   interface ThemeStoreRegistry {
-    palettez: ThemeStore<typeof config>
+    resonare: ThemeStore<typeof config>
   }
 }
 
 
 const themeStore = createThemeStore({
-  // optional, default 'palettez'
+  // optional, default 'resonare'
   // should be unique, also used as client storage key
-  key: 'palettez',
+  key: 'resonare',
 
   // required, specify theme and options
   config,
@@ -180,19 +180,19 @@ const themeStore = createThemeStore({
 ### `getThemeStore`
 
 ```ts
-import { getThemeStore } from 'palettez'
+import { getThemeStore } from 'resonare'
 
 // Get an existing theme store by key
-const themeStore = getThemeStore('palettez') 
+const themeStore = getThemeStore('resonare') 
 ```
 
 ### `destroyThemeStore`
 
 ```ts
-import { destroyThemeStore } from 'palettez'
+import { destroyThemeStore } from 'resonare'
 
 // Get an existing theme store by key
-const themeStore = destroyThemeStore('palettez') 
+const themeStore = destroyThemeStore('resonare') 
 ```
 
 ### ThemeStore Methods
@@ -234,16 +234,16 @@ interface ThemeStore<T> {
 
 ### React Integration
 
-Ensure that you have initialized Palettez as per instructions under [Basic Usage](#basic-usage).
+Ensure that you have initialized Resonare as per instructions under [Basic Usage](#basic-usage).
 
 ```tsx
 import * as React from 'react'
-import { getThemesAndOptions } from 'palettez'
-import { usePalettez } from 'palettez/react'
+import { getThemesAndOptions } from 'resonare'
+import { useResonare } from 'resonare/react'
 
 function ThemeSelect() {
-  const { themes, setThemes } = usePalettez(() =>
-    window.palettez.getThemeStore(),
+  const { themes, setThemes } = useResonare(() =>
+    window.resonare.getThemeStore(),
   )
 
   return getThemesAndOptions(config).map(([theme, options]) => (
@@ -270,7 +270,7 @@ function ThemeSelect() {
 
 ### Server-side persistence
 
-If you are storing theme selection on the server, you can choose to use `memoryStorageAdapter` to avoid storing any data client-side. There's no need to initialize Palettez in a synchronous script. Ensure you pass the persisted theme selection when initializing Palettez as `initialState`.
+If you are storing theme selection on the server, you can choose to use `memoryStorageAdapter` to avoid storing any data client-side. There's no need to initialize Resonare in a synchronous script. Ensure you pass the persisted theme selection when initializing Resonare as `initialState`.
 
 ```tsx
 import {
@@ -279,8 +279,8 @@ import {
   memoryStorageAdapter,
   type ThemeConfig,
   type Themes,
-} from 'palettez'
-import { usePalettez } from 'palettez/react'
+} from 'resonare'
+import { useResonare } from 'resonare/react'
 import * as React from 'react'
 
 const config = {
@@ -305,7 +305,7 @@ export function ThemeSelect({
     }),
   )
 
-  const { themes, setThemes } = usePalettez(() => themeStore, {
+  const { themes, setThemes } = useResonare(() => themeStore, {
     initOnMount: true,
   })
 
