@@ -18,7 +18,7 @@ const define = {
 export default defineConfig([
 	{
 		entry: {
-			[packageJson.name]: 'src/umd.ts',
+			[packageJson.name]: 'src/index.ts',
 		},
 		format: 'iife',
 		globalName: packageJson.name,
@@ -42,7 +42,7 @@ export default defineConfig([
 	},
 
 	{
-		entry: ['src/index.ts', 'src/storage.ts', 'src/umd.ts', 'src/react.ts'],
+		entry: ['src/index.ts', 'src/react.ts'],
 		dts: true,
 
 		platform: 'neutral',

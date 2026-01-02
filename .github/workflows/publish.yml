@@ -7,6 +7,10 @@ on:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   publish:
     if: ${{ github.repository_owner == 'universse' }}
@@ -23,10 +27,15 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           cache: pnpm
-          node-version: 22
+          node-version: lts/*
+          check-latest: true
+          # registry-url: https://registry.npmjs.org
+
+      # Ensure npm 11.5.1 or later for trusted publishing
+      - name: Install latest npm
+        run: npm install -g npm@latest
 
       - name: Install dependencies
-        shell: bash
         run: pnpm i --ignore-scripts
 
       - name: Build & deploy
@@ -46,7 +55,6 @@ jobs:
           publish: pnpm changeset publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish dev version
         if: steps.changesets.outputs.published != 'true'
@@ -56,4 +64,3 @@ jobs:
           pnpm changeset publish --tag dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

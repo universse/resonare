@@ -1,6 +1,6 @@
 {
 	"name": "resonare",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Resonare",
 	"keywords": [
 		"theming"
@@ -19,19 +19,12 @@
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
 		},
-		"./global": {
-			"types": "./dist/umd.d.ts"
-		},
 		"./raw": {
 			"import": "./dist/resonare.iife.min.js"
 		},
 		"./react": {
 			"types": "./dist/react.d.ts",
 			"import": "./dist/react.js"
-		},
-		"./storage": {
-			"types": "./dist/storage.d.ts",
-			"import": "./dist/storage.js"
 		}
 	},
 	"jsdelivr": "./dist/resonare.iife.min.js",
@@ -55,13 +48,13 @@
 		"@types/react": "19.2.7",
 		"@vitejs/plugin-react": "5.1.2",
 		"babel-plugin-react-compiler": "1.0.0",
-		"jsdom": "27.3.0",
-		"react": "19.2.1",
-		"react-dom": "19.2.1",
+		"jsdom": "27.4.0",
+		"react": "19.2.3",
+		"react-dom": "19.2.3",
 		"size-limit": "12.0.0",
-		"tsdown": "0.17.2",
+		"tsdown": "0.18.4",
 		"typescript": "5.9.3",
-		"vitest": "4.0.15"
+		"vitest": "4.0.16"
 	},
 	"peerDependencies": {
 		"react": "^18.0.0 || ^19.0.0"

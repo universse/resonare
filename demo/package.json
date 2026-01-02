@@ -8,10 +8,10 @@
 		"dev": "astro dev --port 3000"
 	},
 	"dependencies": {
-		"astro": "5.16.4",
-		"resonare": "workspace:*",
-		"react": "19.2.1",
-		"react-dom": "19.2.1"
+		"astro": "5.16.6",
+		"react": "19.2.3",
+		"react-dom": "19.2.3",
+		"resonare": "workspace:*"
 	},
 	"devDependencies": {
 		"@astrojs/cloudflare": "12.6.12",
@@ -19,6 +19,6 @@
 		"@types/react": "19.2.7",
 		"@types/react-dom": "19.2.3",
 		"typescript": "5.9.3",
-		"wrangler": "4.53.0"
+		"wrangler": "4.54.0"
 	}
 }

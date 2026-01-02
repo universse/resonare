@@ -1,3 +1,3 @@
 interface Window {
-	resonare: typeof import('./dist/umd')
+	resonare: typeof import('./dist/index')
 }

@@ -14,7 +14,7 @@ type ThemeOption = {
 export type ThemeConfig = Record<
 	string,
 	{
-		options: Array<string | ThemeOption>
+		options: Array<string | ThemeOption> | readonly (string | ThemeOption)[]
 		defaultOption?: string
 	}
 >
@@ -25,7 +25,7 @@ type KeyedThemeConfig<T extends ThemeConfig> = {
 }
 
 export type Themes<T extends ThemeConfig> = {
-	[K in keyof T]: T[K]['options'] extends Array<infer U>
+	[K in keyof T]: T[K]['options'] extends Array<infer U> | readonly (infer U)[]
 		? U extends string
 			? U
 			: U extends ThemeOption
@@ -40,7 +40,7 @@ type Listener<T extends ThemeConfig> = (value: {
 }) => void
 
 type ThemeKeysWithSystemOption<T extends ThemeConfig> = {
-	[K in keyof T]: T[K]['options'] extends Array<infer U>
+	[K in keyof T]: T[K]['options'] extends Array<infer U> | readonly (infer U)[]
 		? U extends { media: [string, string, string] }
 			? K
 			: never
@@ -50,7 +50,7 @@ type ThemeKeysWithSystemOption<T extends ThemeConfig> = {
 type NonSystemOptionValues<
 	T extends ThemeConfig,
 	K extends keyof T,
-> = T[K]['options'] extends Array<infer U>
+> = T[K]['options'] extends Array<infer U> | readonly (infer U)[]
 	? U extends string
 		? U
 		: U extends ThemeOption
@@ -85,7 +85,7 @@ export type ThemeAndOptions<T extends ThemeConfig> = Array<
 		[K in keyof T]: [
 			K,
 			Array<
-				T[K]['options'] extends Array<infer U>
+				T[K]['options'] extends Array<infer U> | readonly (infer U)[]
 					? U extends string
 						? U
 						: U extends ThemeOption
@@ -126,7 +126,7 @@ const isClient = !!(
 	typeof window.document.createElement !== 'undefined'
 )
 
-export class ThemeStore<T extends ThemeConfig> {
+class ThemeStore<T extends ThemeConfig> {
 	#defaultThemes: Themes<T>
 	#currentThemes: Themes<T>
 
@@ -243,7 +243,7 @@ export class ThemeStore<T extends ThemeConfig> {
 			return
 		}
 
-		// for backwards compatibility
+		// for backward compatibility
 		if (!Object.hasOwn(persistedState, 'version')) {
 			persistedState = {
 				version: 1,
@@ -379,13 +379,12 @@ class Registry {
 	): ThemeStore<T> => {
 		const storeKey = options.key || PACKAGE_NAME
 
-		if (this.#registry.has(storeKey)) {
-			this.destroy(storeKey as any)
+		let themeStore = this.#registry.get(storeKey) as ThemeStore<T>
+
+		if (!themeStore) {
+			themeStore = new ThemeStore<T>(options)
+			this.#registry.set(storeKey, themeStore as ThemeStore<ThemeConfig>)
 		}
-
-		const themeStore = new ThemeStore<T>(options)
-
-		this.#registry.set(storeKey, themeStore as ThemeStore<ThemeConfig>)
 
 		return themeStore
 	}
@@ -418,8 +417,12 @@ class Registry {
 
 const registry = new Registry()
 
+export type { ThemeStore }
+
 export const createThemeStore = registry.create
 export const getThemeStore = registry.get
 export const destroyThemeStore = registry.destroy
+
+export * from './storage'
 
 export interface ThemeStoreRegistry {}
