@@ -14,7 +14,7 @@ type ThemeOption = {
 export type ThemeConfig = Record<
 	string,
 	{
-		options: Array<string | ThemeOption> | readonly (string | ThemeOption)[]
+		options: ReadonlyArray<string | ThemeOption>
 		defaultOption?: string
 	}
 >
@@ -25,7 +25,7 @@ type KeyedThemeConfig<T extends ThemeConfig> = {
 }
 
 export type Themes<T extends ThemeConfig> = {
-	[K in keyof T]: T[K]['options'] extends Array<infer U> | readonly (infer U)[]
+	[K in keyof T]: T[K]['options'] extends ReadonlyArray<infer U>
 		? U extends string
 			? U
 			: U extends ThemeOption
@@ -40,7 +40,7 @@ type Listener<T extends ThemeConfig> = (value: {
 }) => void
 
 type ThemeKeysWithSystemOption<T extends ThemeConfig> = {
-	[K in keyof T]: T[K]['options'] extends Array<infer U> | readonly (infer U)[]
+	[K in keyof T]: T[K]['options'] extends ReadonlyArray<infer U>
 		? U extends { media: [string, string, string] }
 			? K
 			: never
@@ -50,7 +50,7 @@ type ThemeKeysWithSystemOption<T extends ThemeConfig> = {
 type NonSystemOptionValues<
 	T extends ThemeConfig,
 	K extends keyof T,
-> = T[K]['options'] extends Array<infer U> | readonly (infer U)[]
+> = T[K]['options'] extends ReadonlyArray<infer U>
 	? U extends string
 		? U
 		: U extends ThemeOption
@@ -85,7 +85,7 @@ export type ThemeAndOptions<T extends ThemeConfig> = Array<
 		[K in keyof T]: [
 			K,
 			Array<
-				T[K]['options'] extends Array<infer U> | readonly (infer U)[]
+				T[K]['options'] extends ReadonlyArray<infer U>
 					? U extends string
 						? U
 						: U extends ThemeOption
