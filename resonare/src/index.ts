@@ -1,10 +1,9 @@
+import { name as PACKAGE_NAME } from '../package.json' with { type: 'json' }
 import {
 	localStorageAdapter,
 	type StorageAdapter,
 	type StorageAdapterCreate,
 } from './storage'
-
-const PACKAGE_NAME = 'resonare'
 
 type ThemeOption = {
 	value: string
@@ -69,7 +68,7 @@ type SystemOptions<T extends ThemeConfig> = {
 
 type PersistedState<T extends ThemeConfig> = {
 	version: 1
-	themes: Themes<T>
+	themes: Partial<Themes<T>>
 	systemOptions: SystemOptions<T>
 }
 

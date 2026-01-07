@@ -1,4 +1,4 @@
-import { name as PACKAGE_NAME } from '../package.json'
+import { name as PACKAGE_NAME } from '../package.json' with { type: 'json' }
 
 export type StorageAdapter = {
 	getItem: (key: string) => object | null | Promise<object | null>
