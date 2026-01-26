@@ -43,7 +43,9 @@ export default defineConfig([
 
 	{
 		entry: ['src/index.ts', 'src/react.ts'],
-		dts: true,
+		dts: {
+			sourcemap: true,
+		},
 
 		platform: 'neutral',
 		plugins: [
