@@ -1,5 +1,3 @@
-import fsp from 'node:fs/promises'
-import nodePath from 'node:path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'tsdown'
 import packageJson from './package.json' with { type: 'json' }
@@ -49,12 +47,10 @@ export default defineConfig([
 
 					if (output.type !== 'chunk') return
 
-					const scriptTsContent = `export const resonareInlineScript = ${JSON.stringify(output.code.slice(output.code.indexOf('var resonare')))}`
-
 					this.emitFile({
 						type: 'asset',
 						fileName: 'inline-script.ts',
-						source: scriptTsContent,
+						source: `export const resonareInlineScript = ${JSON.stringify(output.code)}`,
 					})
 				},
 			},

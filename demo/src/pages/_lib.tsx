@@ -4,7 +4,7 @@ import {
 	type ThemeConfig,
 	type ThemeStore,
 } from 'resonare'
-import resonareGlobal from 'resonare/raw?raw'
+import { resonareInlineScript } from 'resonare/inline-script'
 import { useResonare } from 'resonare/react'
 
 const config = {
@@ -64,7 +64,7 @@ export async function updateDom({
 	themeStore.sync()
 }
 
-export const themeScript = `${resonareGlobal}
+export const themeScript = `${resonareInlineScript}
 (${updateDom.toString()})(${JSON.stringify({ key: storeKey, config })})`
 
 const THEME_LABELS = {

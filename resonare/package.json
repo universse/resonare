@@ -1,6 +1,6 @@
 {
 	"name": "resonare",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"description": "Resonare",
 	"keywords": [
 		"theming"
@@ -21,9 +21,6 @@
 		},
 		"./inline-script": {
 			"import": "./dist/inline-script.ts"
-		},
-		"./raw": {
-			"import": "./dist/resonare.iife.min.js"
 		},
 		"./react": {
 			"types": "./dist/react.d.ts",
