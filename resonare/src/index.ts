@@ -5,17 +5,29 @@ import {
 	type StorageAdapterCreate,
 } from './storage'
 
-type ThemeOption = {
-	value: string
-	media?: [string, string, string]
+type ThemeOptionValue = string | number | boolean
+
+type ThemeOption<T extends ThemeOptionValue = string> = {
+	value: T
+	media?: [string, T, T]
 }
+
+type ThemeOptions<T extends ThemeOptionValue = string> =
+	| {
+			options: [
+				T | ThemeOption<T>,
+				T | ThemeOption<T>,
+				...ReadonlyArray<T | ThemeOption<T>>,
+			]
+			initialValue?: T
+	  }
+	| {
+			initialValue: T
+	  }
 
 export type ThemeConfig = Record<
 	string,
-	{
-		options: ReadonlyArray<string | ThemeOption>
-		defaultOption?: string
-	}
+	ThemeOptions<string> | ThemeOptions<number> | ThemeOptions<boolean>
 >
 
 // { [themeKey]: { [optionKey]: ThemeOption } }
@@ -24,13 +36,17 @@ type KeyedThemeConfig<T extends ThemeConfig> = {
 }
 
 export type Themes<T extends ThemeConfig> = {
-	[K in keyof T]: T[K]['options'] extends ReadonlyArray<infer U>
-		? U extends string
-			? U
-			: U extends ThemeOption
-				? U['value']
-				: never
-		: never
+	[K in keyof T]: T[K] extends { options: ReadonlyArray<infer U> }
+		? U extends ThemeOption
+			? U['value']
+			: U
+		: T[K] extends { initialValue: infer U }
+			? U extends string
+				? string
+				: U extends number
+					? number
+					: boolean
+			: never
 }
 
 type Listener<T extends ThemeConfig> = (value: {
@@ -39,8 +55,8 @@ type Listener<T extends ThemeConfig> = (value: {
 }) => void
 
 type ThemeKeysWithSystemOption<T extends ThemeConfig> = {
-	[K in keyof T]: T[K]['options'] extends ReadonlyArray<infer U>
-		? U extends { media: [string, string, string] }
+	[K in keyof T]: T[K] extends { options: ReadonlyArray<infer U> }
+		? U extends { media: ReadonlyArray<unknown> }
 			? K
 			: never
 		: never
@@ -49,8 +65,8 @@ type ThemeKeysWithSystemOption<T extends ThemeConfig> = {
 type NonSystemOptionValues<
 	T extends ThemeConfig,
 	K extends keyof T,
-> = T[K]['options'] extends ReadonlyArray<infer U>
-	? U extends string
+> = T[K] extends { options: ReadonlyArray<infer U> }
+	? U extends string | number | boolean
 		? U
 		: U extends ThemeOption
 			? U extends { media: [string, string, string] }
@@ -109,12 +125,14 @@ export function getThemesAndOptions<T extends ThemeConfig>(config: T) {
 
 export function getDefaultThemes<T extends ThemeConfig>(config: T) {
 	return Object.fromEntries(
-		Object.entries(config).map(([themeKey, { options, defaultOption }]) => {
-			const defaultOptionValue =
-				defaultOption ??
-				(typeof options[0] === 'string' ? options[0] : options[0]!.value)
+		Object.entries(config).map(([themeKey, themeOptions]) => {
+			const defaultValue =
+				themeOptions.initialValue ??
+				(typeof themeOptions.options[0] === 'object'
+					? themeOptions.options[0].value
+					: themeOptions.options[0])
 
-			return [themeKey, defaultOptionValue]
+			return [themeKey, defaultValue]
 		}),
 	) as Themes<T>
 }
@@ -149,25 +167,28 @@ class ThemeStore<T extends ThemeConfig> {
 		initialState = {},
 		storage = localStorageAdapter(),
 	}: ThemeStoreOptions<T>) {
-		const keyedConfig: Record<string, Record<string, ThemeOption>> = {}
-		const systemOptions: Record<string, [string, string]> = {
-			...initialState.systemOptions,
-		}
+		const keyedConfig: Record<string, Record<string, ThemeOption<any>>> = {}
+		const systemOptions: Record<string, [ThemeOptionValue, ThemeOptionValue]> =
+			{
+				...initialState.systemOptions,
+			}
 
-		Object.entries(config).forEach(([themeKey, { options }]) => {
-			keyedConfig[themeKey] = keyedConfig[themeKey] || {}
+		Object.entries(config).forEach(([themeKey, themeOptions]) => {
+			keyedConfig[themeKey] = {}
 
-			options.forEach((option) => {
-				if (typeof option === 'string') {
-					keyedConfig[themeKey]![option] = { value: option }
-				} else {
-					if (option.media && !Object.hasOwn(systemOptions, themeKey)) {
-						systemOptions[themeKey] = [option.media[1], option.media[2]]
+			if ('options' in themeOptions) {
+				themeOptions.options.forEach((option) => {
+					if (typeof option === 'object') {
+						if (option.media && !Object.hasOwn(systemOptions, themeKey)) {
+							systemOptions[themeKey] = [option.media[1], option.media[2]]
+						}
+
+						keyedConfig[themeKey]![String(option.value)] = option
+					} else {
+						keyedConfig[themeKey]![String(option)] = { value: option }
 					}
-
-					keyedConfig[themeKey]![option.value] = option
-				}
-			})
+				})
+			}
 		})
 
 		this.#options = {
@@ -311,11 +332,12 @@ class ThemeStore<T extends ThemeConfig> {
 	#resolveThemes = (): Themes<T> => {
 		return Object.fromEntries(
 			Object.entries(this.#currentThemes).map(([themeKey, optionKey]) => {
-				const option = this.#options.config[themeKey]![optionKey]!
+				const option = this.#options.config[themeKey]?.[optionKey]
 
-				const resolved = this.#resolveThemeOption({ themeKey, option })
-
-				return [themeKey, resolved]
+				return [
+					themeKey,
+					option ? this.#resolveThemeOption({ themeKey, option }) : optionKey,
+				]
 			}),
 		) as Themes<T>
 	}
@@ -403,11 +425,7 @@ class Registry {
 	destroy = <T extends keyof ThemeStoreRegistry>(key?: T) => {
 		const storeKey = key || PACKAGE_NAME
 
-		if (!this.#registry.has(storeKey)) {
-			throw new Error(
-				`[${PACKAGE_NAME}] Theme store with key '${storeKey}' could not be found. Please run \`createThemeStore\` with key '${storeKey}' first.`,
-			)
-		}
+		if (!this.#registry.has(storeKey)) return
 
 		this.#registry.get(storeKey)!.___destroy()
 		this.#registry.delete(storeKey)

@@ -1,3 +1,5 @@
+import fsp from 'node:fs/promises'
+import nodePath from 'node:path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'tsdown'
 import packageJson from './package.json' with { type: 'json' }
@@ -32,13 +34,31 @@ export default defineConfig([
 	*
 	* This source code is licensed under the MIT license found in the
 	* LICENSE file in the root directory of this source tree.
-	*/`,
+*/`,
 		},
 		platform: 'browser',
 
 		clean: true,
 		define,
 		minify: !!process.env.CI,
+		plugins: [
+			{
+				name: 'generate-inline-script-ts',
+				async generateBundle(_, bundle) {
+					const output = Object.values(bundle)[0]!
+
+					if (output.type !== 'chunk') return
+
+					const scriptTsContent = `export const resonareInlineScript = ${JSON.stringify(output.code.slice(output.code.indexOf('var resonare')))}`
+
+					this.emitFile({
+						type: 'asset',
+						fileName: 'inline-script.ts',
+						source: scriptTsContent,
+					})
+				},
+			},
+		],
 	},
 
 	{

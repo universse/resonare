@@ -5,7 +5,6 @@ import {
 	createThemeStore,
 	destroyThemeStore,
 	getThemeStore,
-	getThemesAndOptions,
 	type ThemeConfig,
 	type ThemeStore,
 	type ThemeStoreOptions,
@@ -26,6 +25,9 @@ const mockConfig = {
 	},
 	contrast: {
 		options: ['standard', 'high'],
+	},
+	sidebar: {
+		initialValue: 200,
 	},
 } as const satisfies ThemeConfig
 
@@ -48,23 +50,11 @@ const mockOptions = {
 	storage: () => mockStorage,
 } as const satisfies ThemeStoreOptions<typeof mockConfig>
 
-describe('getThemesAndOptions', () => {
-	it('should return the themes and options', () => {
-		const themesAndOptions = getThemesAndOptions(mockConfig)
-
-		expect(themesAndOptions).toEqual([
-			[
-				'colorScheme',
-				['system', 'light', 'light-modern', 'dark', 'dark-modern'],
-			],
-			['contrast', ['standard', 'high']],
-		])
-	})
-})
-
 describe('ThemeStore', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+
+		destroyThemeStore('resonare')
 
 		setSystemColorScheme('light')
 	})
@@ -82,26 +72,33 @@ describe('ThemeStore', () => {
 	it('should get default themes', () => {
 		const themeStore = createThemeStore(mockOptions)
 
-		const themes = themeStore.getThemes()
+		expect(themeStore.getThemes()).toEqual({
+			colorScheme: 'system',
+			contrast: 'standard',
+			sidebar: 200,
+		})
 
-		expect(themes).toEqual({ colorScheme: 'system', contrast: 'standard' })
-
-		const resolvedThemes = themeStore.getResolvedThemes()
-
-		expect(resolvedThemes).toEqual({
+		expect(themeStore.getResolvedThemes()).toEqual({
 			colorScheme: 'light',
 			contrast: 'standard',
+			sidebar: 200,
 		})
 	})
 
 	it('should set themes', async () => {
 		const themeStore = createThemeStore(mockOptions)
 
-		themeStore.setThemes({ colorScheme: 'dark', contrast: 'high' })
+		themeStore.setThemes({
+			colorScheme: 'dark',
+			contrast: 'high',
+			sidebar: 300,
+		})
 
-		const themes = themeStore.getThemes()
-
-		expect(themes).toEqual({ colorScheme: 'dark', contrast: 'high' })
+		expect(themeStore.getThemes()).toEqual({
+			colorScheme: 'dark',
+			contrast: 'high',
+			sidebar: 300,
+		})
 
 		expect(mockStorage.setItem).toBeCalledWith(
 			'resonare',
@@ -114,11 +111,10 @@ describe('ThemeStore', () => {
 
 		const themeStore = createThemeStore(mockOptions)
 
-		const resolvedThemes1 = themeStore.getResolvedThemes()
-
-		expect(resolvedThemes1).toEqual({
+		expect(themeStore.getResolvedThemes()).toEqual({
 			colorScheme: 'dark',
 			contrast: 'standard',
+			sidebar: 200,
 		})
 
 		themeStore.updateSystemOption('colorScheme', [
@@ -126,11 +122,10 @@ describe('ThemeStore', () => {
 			'light-modern',
 		])
 
-		const resolvedThemes2 = themeStore.getResolvedThemes()
-
-		expect(resolvedThemes2).toEqual({
+		expect(themeStore.getResolvedThemes()).toEqual({
 			colorScheme: 'dark-modern',
 			contrast: 'standard',
+			sidebar: 200,
 		})
 
 		expect(mockStorage.setItem).toBeCalledWith('resonare', {
@@ -138,6 +133,7 @@ describe('ThemeStore', () => {
 			themes: {
 				colorScheme: 'system',
 				contrast: 'standard',
+				sidebar: 200,
 			},
 			systemOptions: {
 				colorScheme: ['dark-modern', 'light-modern'],
@@ -155,6 +151,7 @@ describe('ThemeStore', () => {
 				themes: {
 					colorScheme: 'system',
 					contrast: 'high',
+					sidebar: 300,
 				},
 				systemOptions: {
 					colorScheme: ['dark-modern', 'light-modern'],
@@ -162,15 +159,16 @@ describe('ThemeStore', () => {
 			},
 		})
 
-		const themes = themeStore.getThemes()
+		expect(themeStore.getThemes()).toEqual({
+			colorScheme: 'system',
+			contrast: 'high',
+			sidebar: 300,
+		})
 
-		expect(themes).toEqual({ colorScheme: 'system', contrast: 'high' })
-
-		const resolvedThemes = themeStore.getResolvedThemes()
-
-		expect(resolvedThemes).toEqual({
+		expect(themeStore.getResolvedThemes()).toEqual({
 			colorScheme: 'dark-modern',
 			contrast: 'high',
+			sidebar: 300,
 		})
 	})
 
@@ -182,6 +180,7 @@ describe('ThemeStore', () => {
 			themes: {
 				colorScheme: 'system',
 				contrast: 'high',
+				sidebar: 300,
 			},
 			systemOptions: {
 				colorScheme: ['dark-modern', 'light-modern'],
@@ -192,15 +191,16 @@ describe('ThemeStore', () => {
 
 		await themeStore.restore()
 
-		const themes = themeStore.getThemes()
+		expect(themeStore.getThemes()).toEqual({
+			colorScheme: 'system',
+			contrast: 'high',
+			sidebar: 300,
+		})
 
-		expect(themes).toEqual({ colorScheme: 'system', contrast: 'high' })
-
-		const resolvedThemes = themeStore.getResolvedThemes()
-
-		expect(resolvedThemes).toEqual({
+		expect(themeStore.getResolvedThemes()).toEqual({
 			colorScheme: 'dark-modern',
 			contrast: 'high',
+			sidebar: 300,
 		})
 	})
 
@@ -218,13 +218,17 @@ describe('ThemeStore', () => {
 		themeStore.setThemes({ contrast: 'standard' })
 
 		expect(mockListener).toHaveBeenNthCalledWith(1, {
-			themes: { colorScheme: 'system', contrast: 'standard' },
-			resolvedThemes: { colorScheme: 'light', contrast: 'standard' },
+			themes: { colorScheme: 'system', contrast: 'standard', sidebar: 200 },
+			resolvedThemes: {
+				colorScheme: 'light',
+				contrast: 'standard',
+				sidebar: 200,
+			},
 		})
 
 		expect(mockListener).toHaveBeenNthCalledWith(2, {
-			themes: { colorScheme: 'system', contrast: 'high' },
-			resolvedThemes: { colorScheme: 'light', contrast: 'high' },
+			themes: { colorScheme: 'system', contrast: 'high', sidebar: 200 },
+			resolvedThemes: { colorScheme: 'light', contrast: 'high', sidebar: 200 },
 		})
 
 		expect(mockListener).toHaveBeenCalledTimes(2)

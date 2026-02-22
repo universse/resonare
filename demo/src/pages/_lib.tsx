@@ -1,9 +1,5 @@
 import * as React from 'react'
-import {
-	getThemesAndOptions,
-	type ThemeConfig,
-	type ThemeStore,
-} from 'resonare'
+import type { ThemeConfig, ThemeStore } from 'resonare'
 import resonareGlobal from 'resonare/raw?raw'
 import { useResonare } from 'resonare/react'
 
@@ -26,11 +22,11 @@ const config = {
 	},
 	spacing: {
 		options: ['80%', '90%', '100%', '110%', '120%'],
-		defaultOption: '100%',
+		initialValue: '100%',
 	},
 	fontSize: {
 		options: ['80%', '90%', '100%', '110%', '120%'],
-		defaultOption: '100%',
+		initialValue: '100%',
 	},
 } as const satisfies ThemeConfig
 
@@ -41,8 +37,6 @@ declare module 'resonare' {
 		demo: ThemeStore<typeof config>
 	}
 }
-
-const themesAndOptions = getThemesAndOptions(config)
 
 export async function updateDom({
 	key,
@@ -69,7 +63,7 @@ export async function updateDom({
 export const themeScript = `${resonareGlobal}
 (${updateDom.toString()})(${JSON.stringify({ key: storeKey, config })})`
 
-const ThemeLabels = {
+const THEME_LABELS = {
 	color: 'color',
 	colorScheme: 'color scheme',
 	contrast: 'contrast',
@@ -82,13 +76,24 @@ export function ThemeSelect() {
 		window.resonare.getThemeStore(storeKey),
 	)
 
+	const themesAndOptions = Object.entries(config).map(
+		([themeKey, { options }]) => {
+			return [
+				themeKey,
+				options.map((option) =>
+					typeof option === 'string' ? option : option.value,
+				),
+			] as [keyof typeof config, Array<string>]
+		},
+	)
+
 	return (
 		<div className='theme-select'>
 			{themesAndOptions.map(([theme, options]) => (
 				<React.Fragment key={theme}>
 					{/* <input type="hidden" name="key" value={storeKey} /> */}
 					<label htmlFor={theme} style={{ textTransform: 'capitalize' }}>
-						{ThemeLabels[theme]}
+						{THEME_LABELS[theme]}
 					</label>
 					<select
 						id={theme}
