@@ -66,7 +66,7 @@ type NonSystemOptionValues<
 	T extends ThemeConfig,
 	K extends keyof T,
 > = T[K] extends { options: ReadonlyArray<infer U> }
-	? U extends string | number | boolean
+	? U extends ThemeOptionValue
 		? U
 		: U extends ThemeOption
 			? U extends { media: [string, string, string] }
@@ -93,6 +93,34 @@ export type ThemeStoreOptions<T extends ThemeConfig> = {
 	config: T
 	initialState?: Partial<PersistedState<T>>
 	storage?: StorageAdapterCreate
+}
+
+export type ThemeAndOptions<T extends ThemeConfig> = Array<
+	{
+		[K in keyof T]: [
+			K,
+			Array<
+				T[K] extends { options: ReadonlyArray<infer U> }
+					? U extends ThemeOption
+						? U['value']
+						: U
+					: never
+			>,
+		]
+	}[keyof T]
+>
+
+export function getThemesAndOptions<T extends ThemeConfig>(config: T) {
+	return Object.entries(config).map(([themeKey, themeOptions]) => {
+		return [
+			themeKey,
+			'options' in themeOptions
+				? themeOptions.options.map((option) =>
+						typeof option === 'string' ? option : option.value,
+					)
+				: [],
+		]
+	}) as ThemeAndOptions<T>
 }
 
 export function getDefaultThemes<T extends ThemeConfig>(config: T) {

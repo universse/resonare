@@ -5,6 +5,7 @@ import {
 	createThemeStore,
 	destroyThemeStore,
 	getThemeStore,
+	getThemesAndOptions,
 	type ThemeConfig,
 	type ThemeStore,
 	type ThemeStoreOptions,
@@ -49,6 +50,21 @@ const mockOptions = {
 	config: mockConfig,
 	storage: () => mockStorage,
 } as const satisfies ThemeStoreOptions<typeof mockConfig>
+
+describe('getThemesAndOptions', () => {
+	it('should return the themes and options', () => {
+		const themesAndOptions = getThemesAndOptions(mockConfig)
+
+		expect(themesAndOptions).toEqual([
+			[
+				'colorScheme',
+				['system', 'light', 'light-modern', 'dark', 'dark-modern'],
+			],
+			['contrast', ['standard', 'high']],
+			['sidebar', []],
+		])
+	})
+})
 
 describe('ThemeStore', () => {
 	beforeEach(() => {

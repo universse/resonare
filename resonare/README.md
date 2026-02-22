@@ -238,6 +238,7 @@ Ensure that you have initialized Resonare as per instructions under [Basic Usage
 
 ```tsx
 import * as React from 'react'
+import { getThemesAndOptions } from 'resonare'
 import { useResonare } from 'resonare/react'
 
 function ThemeSelect() {
@@ -245,18 +246,7 @@ function ThemeSelect() {
     window.resonare.getThemeStore(),
   )
 
-  const themesAndOptions = Object.entries(config).map(
-    ([themeKey, { options }]) => {
-      return [
-        themeKey,
-        options.map((option) =>
-          typeof option === 'string' ? option : option.value,
-        ),
-      ] as [keyof typeof config, Array<string>]
-    },
-  )
-
-  return themesAndOptions.map(([theme, options]) => (
+  return getThemesAndOptions(config).map(([theme, options]) => (
     <div key={theme}>
       <label htmlFor={theme}>{theme}</label>
       <select

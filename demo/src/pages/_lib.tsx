@@ -1,5 +1,9 @@
 import * as React from 'react'
-import type { ThemeConfig, ThemeStore } from 'resonare'
+import {
+	getThemesAndOptions,
+	type ThemeConfig,
+	type ThemeStore,
+} from 'resonare'
 import resonareGlobal from 'resonare/raw?raw'
 import { useResonare } from 'resonare/react'
 
@@ -76,16 +80,7 @@ export function ThemeSelect() {
 		window.resonare.getThemeStore(storeKey),
 	)
 
-	const themesAndOptions = Object.entries(config).map(
-		([themeKey, { options }]) => {
-			return [
-				themeKey,
-				options.map((option) =>
-					typeof option === 'string' ? option : option.value,
-				),
-			] as [keyof typeof config, Array<string>]
-		},
-	)
+	const themesAndOptions = getThemesAndOptions(config)
 
 	return (
 		<div className='theme-select'>
