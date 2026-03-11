@@ -39,9 +39,9 @@ declare module '../dist' {
 }
 
 const mockStorage = {
-	getItem: vi.fn(),
-	setItem: vi.fn(),
-	removeItem: vi.fn(),
+	get: vi.fn(),
+	set: vi.fn(),
+	del: vi.fn(),
 	watch: vi.fn(),
 }
 
@@ -101,7 +101,7 @@ describe('ThemeStore', () => {
 		})
 	})
 
-	it('should set themes', async () => {
+	it('should set themes', () => {
 		const themeStore = createThemeStore(mockOptions)
 
 		themeStore.setThemes({
@@ -116,13 +116,10 @@ describe('ThemeStore', () => {
 			sidebar: 300,
 		})
 
-		expect(mockStorage.setItem).toBeCalledWith(
-			'resonare',
-			themeStore.getStateToPersist(),
-		)
+		expect(mockStorage.set).toBeCalledWith('resonare', themeStore.toPersist())
 	})
 
-	it('should respond to media query changes', async () => {
+	it('should respond to media query changes', () => {
 		setSystemColorScheme('dark')
 
 		const themeStore = createThemeStore(mockOptions)
@@ -144,7 +141,7 @@ describe('ThemeStore', () => {
 			sidebar: 200,
 		})
 
-		expect(mockStorage.setItem).toBeCalledWith('resonare', {
+		expect(mockStorage.set).toBeCalledWith('resonare', {
 			version: 1,
 			themes: {
 				colorScheme: 'system',
@@ -157,7 +154,7 @@ describe('ThemeStore', () => {
 		})
 	})
 
-	it('should restore from initial state', async () => {
+	it('should restore from initial state', () => {
 		setSystemColorScheme('dark')
 
 		const themeStore = createThemeStore({
@@ -188,10 +185,10 @@ describe('ThemeStore', () => {
 		})
 	})
 
-	it('should restore from storage', async () => {
+	it('should restore from storage', () => {
 		setSystemColorScheme('dark')
 
-		mockStorage.getItem.mockResolvedValue({
+		mockStorage.get.mockReturnValue({
 			version: 1,
 			themes: {
 				colorScheme: 'system',
@@ -205,7 +202,7 @@ describe('ThemeStore', () => {
 
 		const themeStore = createThemeStore(mockOptions)
 
-		await themeStore.restore()
+		themeStore.restore()
 
 		expect(themeStore.getThemes()).toEqual({
 			colorScheme: 'system',
@@ -220,14 +217,14 @@ describe('ThemeStore', () => {
 		})
 	})
 
-	it('should subscribe and unsubscribe to theme changes', async () => {
+	it('should subscribe and unsubscribe to theme changes', () => {
 		const themeStore = createThemeStore(mockOptions)
 
 		const mockListener = vi.fn()
 
 		const unsubscribe = themeStore.subscribe(mockListener, { immediate: true })
 
-		await themeStore.setThemes({ contrast: 'high' })
+		themeStore.setThemes({ contrast: 'high' })
 
 		unsubscribe()
 

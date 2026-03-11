@@ -1,7 +1,7 @@
 [
 	{
 		"path": "dist/resonare.iife.min.js",
-		"limit": "2 KB",
-		"gzip": true
+		"limit": "3 KB",
+		"brotli": false
 	}
 ]

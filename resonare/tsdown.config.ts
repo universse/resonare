@@ -15,35 +15,48 @@ const define = {
 	DEBUG: process.env.CI ? 'false' : 'true',
 }
 
+const iifeBundle = {
+	entry: {
+		[packageJson.name]: 'src/umd.ts',
+	},
+	format: 'iife',
+	globalName: packageJson.name,
+	outExtensions() {
+		return { js: '.min.js' }
+	},
+
+	banner: {
+		js: `/**
+* ${packageJson.name} v${packageJson.version}
+*
+* This source code is licensed under the MIT license found in the
+* LICENSE file in the root directory of this source tree.
+*/`,
+	},
+	platform: 'browser',
+
+	clean: true,
+	define: { ...define, IIFE: 'true' },
+	minify: !!process.env.CI,
+} as const
+
 export default defineConfig([
 	{
-		entry: {
-			[packageJson.name]: 'src/index.ts',
-		},
-		format: 'iife',
-		globalName: packageJson.name,
-		outExtensions() {
-			return { js: '.min.js' }
-		},
+		...iifeBundle,
+		define: { ...iifeBundle.define, PROD: 'true' },
+	},
 
-		banner: {
-			js: `/**
-	* ${packageJson.name} v${packageJson.version}
-	*
-	* This source code is licensed under the MIT license found in the
-	* LICENSE file in the root directory of this source tree.
-*/`,
+	{
+		...iifeBundle,
+		define: {
+			...iifeBundle.define,
+			PROD: 'process.env.NODE_ENV === "production"',
 		},
-		platform: 'browser',
-
-		clean: true,
-		define,
-		minify: !!process.env.CI,
 		plugins: [
 			{
 				name: 'generate-inline-script-ts',
 				async generateBundle(_, bundle) {
-					const output = Object.values(bundle)[0]!
+					const [key, output] = Object.entries(bundle)[0]!
 
 					if (output.type !== 'chunk') return
 
@@ -52,6 +65,8 @@ export default defineConfig([
 						fileName: 'inline-script.ts',
 						source: `export const resonareInlineScript = ${JSON.stringify(output.code)}`,
 					})
+
+					delete bundle[key]
 				},
 			},
 		],
@@ -73,6 +88,10 @@ export default defineConfig([
 		],
 
 		clean: true,
-		define,
+		define: {
+			...define,
+			IIFE: 'false',
+			PROD: 'process.env.NODE_ENV === "production"',
+		},
 	},
 ])

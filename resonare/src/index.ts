@@ -92,7 +92,7 @@ export type ThemeStoreOptions<T extends ThemeConfig> = {
 	key?: string
 	config: T
 	initialState?: Partial<PersistedState<T>>
-	storage?: StorageAdapterCreate
+	storage?: StorageAdapterCreate | null
 }
 
 export type ThemeAndOptions<T extends ThemeConfig> = Array<
@@ -128,32 +128,26 @@ export function getDefaultThemes<T extends ThemeConfig>(config: T) {
 		Object.entries(config).map(([themeKey, themeOptions]) => {
 			const defaultValue =
 				themeOptions.initialValue ??
-				(typeof themeOptions.options[0] === 'object'
-					? themeOptions.options[0].value
-					: themeOptions.options[0])
+				themeOptions.options[0].value ??
+				themeOptions.options[0]
 
 			return [themeKey, defaultValue]
 		}),
 	) as Themes<T>
 }
 
-const isClient = !!(
-	typeof window !== 'undefined' &&
-	typeof window.document !== 'undefined' &&
-	typeof window.document.createElement !== 'undefined'
-)
-
-class ThemeStore<T extends ThemeConfig> {
+export class ThemeStore<T extends ThemeConfig> {
 	#defaultThemes: Themes<T>
 	#currentThemes: Themes<T>
 
-	#options: Required<Omit<ThemeStoreOptions<T>, 'config' | 'initialState'>> & {
+	#options: {
+		key: string
 		config: KeyedThemeConfig<T>
 	}
 
 	#systemOptions: SystemOptions<T>
 
-	#storage: StorageAdapter
+	#storage: StorageAdapter | null
 
 	#listeners: Set<Listener<T>> = new Set<Listener<T>>()
 
@@ -194,7 +188,6 @@ class ThemeStore<T extends ThemeConfig> {
 		this.#options = {
 			key,
 			config: keyedConfig as KeyedThemeConfig<T>,
-			storage,
 		}
 
 		this.#systemOptions = systemOptions as SystemOptions<T>
@@ -203,9 +196,10 @@ class ThemeStore<T extends ThemeConfig> {
 
 		this.#currentThemes = { ...this.#defaultThemes, ...initialState.themes }
 
-		this.#storage = this.#options.storage({
-			abortController: this.#abortController,
-		})
+		this.#storage =
+			storage?.({
+				abortController: this.#abortController,
+			}) ?? null
 
 		this.#mediaQueryCache = {}
 	}
@@ -228,11 +222,12 @@ class ThemeStore<T extends ThemeConfig> {
 
 		this.#setThemesAndNotify({ ...this.#currentThemes, ...updatedThemes })
 
-		const stateToPersist = this.getStateToPersist()
+		const stateToPersist = this.toPersist()
 
-		await this.#storage.setItem(this.#options.key, stateToPersist)
-
-		this.#storage.broadcast?.(this.#options.key, stateToPersist)
+		if (this.#storage) {
+			this.#storage.set(this.#options.key, stateToPersist)
+			this.#storage.broadcast?.(this.#options.key, stateToPersist)
+		}
 	}
 
 	updateSystemOption = <K extends ThemeKeysWithSystemOption<T>>(
@@ -247,7 +242,7 @@ class ThemeStore<T extends ThemeConfig> {
 		this.setThemes({ ...this.#currentThemes })
 	}
 
-	getStateToPersist = (): PersistedState<T> => {
+	toPersist = (): PersistedState<T> => {
 		return {
 			version: 1,
 			themes: this.#currentThemes,
@@ -255,8 +250,8 @@ class ThemeStore<T extends ThemeConfig> {
 		}
 	}
 
-	restore = async (): Promise<void> => {
-		let persistedState = await this.#storage.getItem(this.#options.key)
+	restore = () => {
+		let persistedState = this.#storage?.get(this.#options.key)
 
 		if (!persistedState) {
 			this.#setThemesAndNotify({ ...this.#defaultThemes })
@@ -302,10 +297,16 @@ class ThemeStore<T extends ThemeConfig> {
 	}
 
 	sync = (): (() => void) | undefined => {
-		if (!this.#storage.watch) {
-			console.warn(
-				`[${PACKAGE_NAME}] No watch method was provided for storage.`,
-			)
+		if (!this.#storage?.watch) {
+			if (!PROD) {
+				if (this.#storage) {
+					console.warn(
+						`[${PACKAGE_NAME}] No watch method was provided for storage.`,
+					)
+				} else {
+					console.warn(`[${PACKAGE_NAME}] No storage was provided.`)
+				}
+			}
 
 			return
 		}
@@ -351,12 +352,20 @@ class ThemeStore<T extends ThemeConfig> {
 	}): string => {
 		if (!option.media) return option.value
 
-		if (!isClient) {
-			console.warn(
-				`[${PACKAGE_NAME}] Option with key "media" cannot be resolved in server environment.`,
-			)
+		if (!IIFE) {
+			if (
+				!(
+					typeof window !== 'undefined' &&
+					typeof window.document !== 'undefined' &&
+					typeof window.document.createElement !== 'undefined'
+				)
+			) {
+				console.warn(
+					`[${PACKAGE_NAME}] Option with key "media" cannot be resolved in server environment.`,
+				)
 
-			return option.value
+				return option.value
+			}
 		}
 
 		const [mediaQuery] = option.media
@@ -414,6 +423,9 @@ class Registry {
 		const storeKey = key || PACKAGE_NAME
 
 		if (!this.#registry.has(storeKey)) {
+			if (IIFE) {
+				throw new Error(`Theme store '${storeKey}' not found.`)
+			}
 			throw new Error(
 				`[${PACKAGE_NAME}] Theme store with key '${storeKey}' could not be found. Please run \`createThemeStore\` with key '${storeKey}' first.`,
 			)
@@ -433,8 +445,6 @@ class Registry {
 }
 
 const registry = new Registry()
-
-export type { ThemeStore }
 
 export const createThemeStore = registry.create
 export const getThemeStore = registry.get

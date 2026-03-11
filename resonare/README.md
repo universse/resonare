@@ -43,7 +43,7 @@ It's recommended to initialize Resonare in a synchronous script to avoid theme f
 <script src="https://cdn.jsdelivr.net/npm/resonare"></script>
 
 <script>
-  ;(async () => {
+  ;(() => {
     const themeStore = window.resonare.createThemeStore({
       config: {
         colorScheme: {
@@ -65,7 +65,7 @@ It's recommended to initialize Resonare in a synchronous script to avoid theme f
       }
     })
 
-    await themeStore.restore()
+    themeStore.restore()
     themeStore.sync()
   })()
 </script>
@@ -143,11 +143,11 @@ const themeStore = createThemeStore({
   // optional, specify your own client storage
   // localStorage is used by default
   storage: ({ abortController }) => ({
-    getItem: (key: string) => {
+    get: (key: string) => {
       return JSON.parse(localStorage.getItem(key) || 'null')
     },
 
-    setItem: (key: string, value: object) => {
+    set: (key: string, value: object) => {
       localStorage.setItem(key, JSON.stringify(value))
     },
 
@@ -210,7 +210,7 @@ interface ThemeStore<T> {
 
   // get state to persist, useful for server-side persistence
   // to restore, pass the returned object to initialState
-  getStateToPersist(): object
+  toPersist(): object
 
   // restore persisted theme selection from client storage
   restore(): Promise<void>

@@ -1,6 +1,6 @@
 {
 	"name": "resonare",
-	"version": "0.0.9",
+	"version": "0.0.10",
 	"description": "Resonare",
 	"keywords": [
 		"theming"
@@ -37,7 +37,7 @@
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch",
-		"size": "size-limit",
+		"size": "cross-env CI=true pnpm build && size-limit",
 		"test": "vitest"
 	},
 	"dependencies": {
@@ -48,6 +48,7 @@
 		"@types/react": "19.2.14",
 		"@vitejs/plugin-react": "5.1.4",
 		"babel-plugin-react-compiler": "1.0.0",
+		"cross-env": "10.1.0",
 		"jsdom": "28.1.0",
 		"react": "19.2.4",
 		"react-dom": "19.2.4",

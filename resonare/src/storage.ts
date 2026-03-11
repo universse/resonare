@@ -1,9 +1,9 @@
 import { name as PACKAGE_NAME } from '../package.json' with { type: 'json' }
 
 export type StorageAdapter = {
-	getItem: (key: string) => object | null | Promise<object | null>
-	setItem: (key: string, value: object) => void | Promise<void>
-	// removeItem: (key: string) => void | Promise<void>
+	get: (key: string) => object | null
+	set: (key: string, value: object) => void
+	// del: (key: string) => void
 	broadcast?: (key: string, value: object) => void
 	watch?: (cb: (key: string | null, value: object) => void) => () => void
 }
@@ -19,20 +19,20 @@ export type StorageAdapterCreator<Options> = (
 ) => StorageAdapterCreate
 
 export const localStorageAdapter: StorageAdapterCreator<{
-	storageType?: 'localStorage' | 'sessionStorage'
-}> = ({ storageType = 'localStorage' } = {}) => {
+	type?: 'localStorage' | 'sessionStorage'
+}> = ({ type = 'localStorage' } = {}) => {
 	return ({ abortController }) => {
 		return {
-			getItem: (key: string) => {
-				return JSON.parse(window[storageType].getItem(key) || 'null')
+			get: (key: string) => {
+				return JSON.parse(window[type].getItem(key) || 'null')
 			},
 
-			setItem: (key: string, value: object) => {
-				window[storageType].setItem(key, JSON.stringify(value))
+			set: (key: string, value: object) => {
+				window[type].setItem(key, JSON.stringify(value))
 			},
 
-			// removeItem: (key: string) => {
-			// 	window[storageType].removeItem(key)
+			// del: (key: string) => {
+			// 	window[type].removeItem(key)
 			// },
 
 			watch: (cb) => {
@@ -41,7 +41,7 @@ export const localStorageAdapter: StorageAdapterCreator<{
 				window.addEventListener(
 					'storage',
 					(e) => {
-						if (e.storageArea !== window[storageType]) return
+						if (e.storageArea !== window[type]) return
 
 						cb(e.key, JSON.parse(e.newValue!))
 					},
@@ -67,15 +67,15 @@ export const memoryStorageAdapter: StorageAdapterCreator<never> = () => {
 		const channel = new BroadcastChannel(PACKAGE_NAME)
 
 		return {
-			getItem: (key: string) => {
+			get: (key: string) => {
 				return storage.get(key) || null
 			},
 
-			setItem: (key: string, value: object) => {
+			set: (key: string, value: object) => {
 				storage.set(key, value)
 			},
 
-			// removeItem: (key: string) => {
+			// del: (key: string) => {
 			// 	storage.delete(key)
 			// },
 
