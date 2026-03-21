@@ -1,25 +1,25 @@
 # Resonare [![Version](https://img.shields.io/npm/v/resonare.svg?labelColor=black&color=blue)](https://www.npmjs.com/package/resonare)
 
-A configuration-based theme store for building deeply personal user interface.
+A configuration-based theme store for building deeply personal user interfaces.
 
 ## Features
 
-- Define and manage multi-dimensional themes, eg:
+- Define and manage multi-dimensional themes, e.g.:
   - Color scheme: system, light, dark
   - Contrast preference: standard, high
   - Spacing: compact, comfortable, spacious
-  - etc
+  - etc.
 - Framework-agnostic
 - Prevent theme flicker on page load
 - Honor system preferences
 - Create sections with independent theming
 - Sync theme selection across tabs and windows
-- Flexible persistence options, defaulting to localStorage
-- SSR-friendly
+- Flexible client-side persistence options, defaulting to localStorage
+- Support server-side persistence
 
 ## Demo
 
-- [Demo](https://resonare.universse.workers.dev)
+[Check it out](https://resonare.universse.workers.dev).
 
 ## Installation
 
@@ -35,7 +35,7 @@ pnpm add resonare
 
 ## Basic Usage
 
-It's recommended to initialize Resonare in a synchronous script to avoid theme flicker on page load. If your project's bundler supports importing static asset as string, you can inline the minified version of Resonare to reduce the number of HTTP requests. Check out the demo for example of this pattern with Vite.
+It's recommended to initialize Resonare in a synchronous script to avoid theme flicker on page load. Load via CDN or inline the stringified version to reduce the number of HTTP requests.
 
 ```html
 <script src="https://unpkg.com/resonare"></script>
@@ -54,14 +54,14 @@ It's recommended to initialize Resonare in a synchronous script to avoid theme f
             },
             'light',
             'dark',
-          ]
+          ],
         },
       },
     })
 
     themeStore.subscribe(({ resolvedThemes }) => {
-      for (const [theme, optionKey] of Object.entries(resolvedThemes)) {
-        document.documentElement.dataset[theme] = optionKey
+      for (const [theme, option] of Object.entries(resolvedThemes)) {
+        document.documentElement.dataset[theme] = option
       }
     })
 
@@ -71,15 +71,50 @@ It's recommended to initialize Resonare in a synchronous script to avoid theme f
 </script>
 ```
 
-If you are using TypeScript, add `node_modules/resonare/global.d.ts` to `include` in `tsconfig.json`.
+```ts
+import { type ThemeConfig, type ThemeStore } from 'resonare'
+import { resonareInlineScript } from 'resonare/inline-script'
 
-```json
-{
-  "include": [
-    "node_modules/resonare/global.d.ts",
-    // ...
-  ]
+const themeConfig = {
+  colorScheme: {
+    options: [
+      {
+        value: 'system',
+        media: ['(prefers-color-scheme: dark)', 'dark', 'light'],
+      },
+      'light',
+      'dark',
+    ],
+  },
+} as const satisfies ThemeConfig
+
+declare module 'resonare' {
+  interface ThemeStoreRegistry {
+    resonare: ThemeStore<typeof themeConfig>
+  }
 }
+
+function initTheme({ config }: { config: ThemeConfig }) {
+  const themeStore = window.resonare.createThemeStore({ config })
+
+  themeStore.subscribe(({ resolvedThemes }) => {
+    Object.entries(resolvedThemes).forEach(([theme, option]) => {
+      document.documentElement.dataset[theme] = option
+    })
+  })
+
+  themeStore.restore()
+  themeStore.sync()
+}
+
+export const themeScript = `${resonareInlineScript};
+(${initTheme.toString()})(${JSON.stringify({ config: themeConfig })})`
+```
+
+Add a triple-slash directive to any `.d.ts` file in your project (e.g. `env.d.ts`):
+
+```ts
+/// <reference types="resonare/global" />
 ```
 
 ## API
@@ -89,7 +124,7 @@ If you are using TypeScript, add `node_modules/resonare/global.d.ts` to `include
 ```ts
 import { createThemeStore, type ThemeConfig, type ThemeStore } from 'resonare'
 
-const config = {
+const themeConfig = {
   colorScheme: {
     options: [
       {
@@ -98,7 +133,7 @@ const config = {
       },
       'light',
       'dark',
-    ]
+    ],
   },
   contrast: {
     options: [
@@ -114,15 +149,14 @@ const config = {
       'high',
     ],
     initialValue: 'standard',
-  }
+  },
 } as const satisfies ThemeConfig
 
 declare module 'resonare' {
   interface ThemeStoreRegistry {
-    resonare: ThemeStore<typeof config>
+    resonare: ThemeStore<typeof themeConfig>
   }
 }
-
 
 const themeStore = createThemeStore({
   // optional, default 'resonare'
@@ -130,15 +164,10 @@ const themeStore = createThemeStore({
   key: 'resonare',
 
   // required, specify theme and options
-  config,
+  config: themeConfig,
 
-  // optional, useful for SSR
-  initialState: {
-    themes: {
-      colorScheme: 'dark',
-      contrast: 'high',
-    },
-  },
+  // optional, useful for server-side persistence
+  initialState: persistedStateFromDb, // persisted state returned by themeStore.toPersist()
 
   // optional, specify your own client storage
   // localStorage is used by default
@@ -157,7 +186,7 @@ const themeStore = createThemeStore({
       window.addEventListener(
         'storage',
         (e) => {
-          if (e.storageArea !== localStorage) return
+          if (e.storageArea !== window.localStorage) return
 
           cb(e.key, JSON.parse(e.newValue!))
         },
@@ -182,8 +211,8 @@ const themeStore = createThemeStore({
 ```ts
 import { getThemeStore } from 'resonare'
 
-// Get an existing theme store by key
-const themeStore = getThemeStore('resonare') 
+// get an existing theme store by key
+const themeStore = getThemeStore('resonare')
 ```
 
 ### `destroyThemeStore`
@@ -191,8 +220,8 @@ const themeStore = getThemeStore('resonare')
 ```ts
 import { destroyThemeStore } from 'resonare'
 
-// Get an existing theme store by key
-const themeStore = destroyThemeStore('resonare') 
+// destroy an existing theme store by key
+destroyThemeStore('resonare')
 ```
 
 ### ThemeStore Methods
@@ -206,14 +235,14 @@ interface ThemeStore<T> {
   getResolvedThemes(): Record<string, string>
 
   // update theme
-  setThemes(themes: Partial<Record<string, string>>): Promise<void>
+  setThemes(themes: Partial<Record<string, string>>): void
 
   // get state to persist, useful for server-side persistence
-  // to restore, pass the returned object to initialState
+  // to restore, pass the returned object to createThemeStore's initialState
   toPersist(): object
 
-  // restore persisted theme selection from client storage
-  restore(): Promise<void>
+  // restore persisted state from client-side storage
+  restore(): void
 
   // sync theme selection across tabs/windows
   sync(): () => void
@@ -232,21 +261,36 @@ interface ThemeStore<T> {
 }
 ```
 
-### React Integration
+## Framework Integrations
+
+### React
 
 Ensure that you have initialized Resonare as per instructions under [Basic Usage](#basic-usage).
 
 ```tsx
 import * as React from 'react'
-import { getThemesAndOptions } from 'resonare'
+import { getThemesAndOptions, type ThemeConfig } from 'resonare'
 import { useResonare } from 'resonare/react'
+
+const themeConfig = {
+  colorScheme: {
+    options: [
+      {
+        value: 'system',
+        media: ['(prefers-color-scheme: dark)', 'dark', 'light'],
+      },
+      'light',
+      'dark',
+    ],
+  },
+} as const satisfies ThemeConfig
 
 function ThemeSelect() {
   const { themes, setThemes } = useResonare(() =>
     window.resonare.getThemeStore(),
   )
 
-  return getThemesAndOptions(config).map(([theme, options]) => (
+  return getThemesAndOptions(themeConfig).map(([theme, options]) => (
     <div key={theme}>
       <label htmlFor={theme}>{theme}</label>
       <select
@@ -268,9 +312,9 @@ function ThemeSelect() {
 }
 ```
 
-### Server-side persistence
+## Server-side Persistence
 
-If you are storing theme selection on the server, you can choose to use `memoryStorageAdapter` to avoid storing any data client-side. There's no need to initialize Resonare in a synchronous script. Ensure you pass the persisted theme selection when initializing Resonare as `initialState`.
+Use `memoryStorageAdapter` to avoid storing any data client-side. The synchronous script is not required.
 
 ```tsx
 import {
@@ -278,12 +322,11 @@ import {
   getThemesAndOptions,
   memoryStorageAdapter,
   type ThemeConfig,
-  type Themes,
 } from 'resonare'
 import { useResonare } from 'resonare/react'
 import * as React from 'react'
 
-const config = {
+const themeConfig = {
   colorScheme: {
     options: ['light', 'dark'],
   },
@@ -292,15 +335,11 @@ const config = {
   },
 } as const satisfies ThemeConfig
 
-export function ThemeSelect({
-  persistedServerThemes,
-}: { persistedServerThemes: Themes<typeof config> }) {
+export function ThemeSelect({ persistedStateFromDb }) {
   const [themeStore] = React.useState(() =>
     createThemeStore({
-      config,
-      initialState: {
-        themes: persistedServerThemes,
-      },
+      config: themeConfig,
+      initialState: persistedStateFromDb,
       storage: memoryStorageAdapter(),
     }),
   )
@@ -309,14 +348,16 @@ export function ThemeSelect({
     initOnMount: true,
   })
 
-  return getThemesAndOptions(config).map(([theme, options]) => (
+  return getThemesAndOptions(themeConfig).map(([theme, options]) => (
     <div key={theme}>
       <label htmlFor={theme}>{theme}</label>
       <select
         id={theme}
         name={theme}
-        onChange={(e) => {
+        onChange={async (e) => {
           setThemes({ [theme]: e.target.value })
+
+          await saveToDb(themeStore.toPersist())
         }}
         value={themes[theme]}
       >

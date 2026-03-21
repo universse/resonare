@@ -42,13 +42,7 @@ declare module 'resonare' {
 	}
 }
 
-export function initTheme({
-	key,
-	config,
-}: {
-	key: string
-	config: ThemeConfig
-}) {
+function initTheme({ key, config }: { key: string; config: ThemeConfig }) {
 	const themeStore = window.resonare.createThemeStore({
 		key,
 		config,
