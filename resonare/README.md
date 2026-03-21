@@ -35,7 +35,9 @@ pnpm add resonare
 
 ## Basic Usage
 
-It's recommended to initialize Resonare in a synchronous script to avoid theme flicker on page load. Load via CDN or inline the stringified version to reduce the number of HTTP requests.
+It's recommended to initialize Resonare in a synchronous script to avoid theme flicker on page load.
+
+Load via CDN:
 
 ```html
 <script src="https://unpkg.com/resonare"></script>
@@ -70,6 +72,8 @@ It's recommended to initialize Resonare in a synchronous script to avoid theme f
   })()
 </script>
 ```
+
+Alternatively, inline the stringified version to reduce the number of HTTP requests:
 
 ```ts
 import { type ThemeConfig, type ThemeStore } from 'resonare'
