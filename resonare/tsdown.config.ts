@@ -1,4 +1,5 @@
-import react from '@vitejs/plugin-react'
+import babel from '@rolldown/plugin-babel'
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import { defineConfig } from 'tsdown'
 import packageJson from './package.json' with { type: 'json' }
 
@@ -66,10 +67,9 @@ export default defineConfig([
 
 		platform: 'neutral',
 		plugins: [
-			react({
-				babel: {
-					plugins: [['babel-plugin-react-compiler', { target: '18' }]],
-				},
+			react(),
+			babel({
+				presets: [reactCompilerPreset({ target: '18' })],
 			}),
 		],
 

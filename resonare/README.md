@@ -1,6 +1,6 @@
 # Resonare [![Version](https://img.shields.io/npm/v/resonare.svg?labelColor=black&color=blue)](https://www.npmjs.com/package/resonare)
 
-A configuration-based theme store for building deeply personal user interfaces.
+A configuration-based store for managing themes and user preferences.
 
 ## Features
 
@@ -68,6 +68,7 @@ Load via CDN:
     })
 
     themeStore.restore()
+    
     themeStore.sync()
   })()
 </script>
@@ -154,6 +155,9 @@ const themeConfig = {
     ],
     initialValue: 'standard',
   },
+  sidebarWidth: {
+    initialValue: 240,
+  },
 } as const satisfies ThemeConfig
 
 declare module 'resonare' {
@@ -208,6 +212,38 @@ const themeStore = createThemeStore({
     },
   })
 })
+
+// get current theme selection
+// e.g.: { colorScheme: 'system', contrast: 'standard', sidebarWidth: 240 }
+themeStore.getThemes()
+
+// get resolved theme selection (after media queries)
+// e.g.: { colorScheme: 'dark', contrast: 'standard', sidebarWidth: 240 }
+themeStore.getResolvedThemes()
+
+// update theme
+themeStore.setThemes({ colorScheme: 'light', sidebarWidth: 280 })
+
+// get state to persist, useful for server-side persistence
+// to restore, pass the returned object to createThemeStore's initialState
+themeStore.toPersist()
+
+// restore persisted state from client-side storage
+themeStore.restore()
+
+// sync theme selection across tabs/windows if supported by the storage adapter
+themeStore.sync()
+
+// subscribe to theme changes
+themeStore.subscribe(({ themes, resolvedThemes }) => {
+  for (const [key, value] of Object.entries(resolvedThemes)) {
+    if (key === 'sidebarWidth') {
+      document.documentElement.style.setProperty('--sidebar-width', `${value}px`)
+    } else {
+      document.documentElement.dataset[key] = value
+    }
+  }
+})
 ```
 
 ### `getThemeStore`
@@ -226,43 +262,6 @@ import { destroyThemeStore } from 'resonare'
 
 // destroy an existing theme store by key
 destroyThemeStore('resonare')
-```
-
-### ThemeStore Methods
-
-```ts
-interface ThemeStore<T> {
-  // get current theme selection
-  getThemes(): Record<string, string>
-
-  // get resolved theme selection (after media queries)
-  getResolvedThemes(): Record<string, string>
-
-  // update theme
-  setThemes(themes: Partial<Record<string, string>>): void
-
-  // get state to persist, useful for server-side persistence
-  // to restore, pass the returned object to createThemeStore's initialState
-  toPersist(): object
-
-  // restore persisted state from client-side storage
-  restore(): void
-
-  // sync theme selection across tabs/windows
-  sync(): () => void
-
-  // subscribe to theme changes
-  subscribe(
-    callback: ({
-      themes,
-      resolvedThemes,
-    }: {
-      themes: Record<string, string>
-      resolvedThemes: Record<string, string>
-    }) => void,
-    options?: { immediate?: boolean }
-  ): () => void
-}
 ```
 
 ## Framework Integrations
@@ -361,6 +360,7 @@ export function ThemeSelect({ persistedStateFromDb }) {
         onChange={async (e) => {
           setThemes({ [theme]: e.target.value })
 
+          // save to server-side storage
           await saveToDb(themeStore.toPersist())
         }}
         value={themes[theme]}

@@ -1,9 +1,11 @@
 {
 	"name": "resonare",
-	"version": "0.0.12",
+	"version": "0.0.13",
 	"description": "Resonare",
 	"keywords": [
-		"theming"
+		"theming",
+		"dark mode",
+		"user preferences"
 	],
 	"repository": {
 		"type": "git",
@@ -47,18 +49,21 @@
 		"react-compiler-runtime": "1.0.0"
 	},
 	"devDependencies": {
-		"@size-limit/preset-small-lib": "12.0.0",
+		"@rolldown/plugin-babel": "0.2.2",
+		"@size-limit/preset-small-lib": "12.0.1",
+		"@types/node": "25.5.0",
 		"@types/react": "19.2.14",
-		"@vitejs/plugin-react": "5.1.4",
+		"@vitejs/plugin-react": "6.0.1",
 		"babel-plugin-react-compiler": "1.0.0",
 		"cross-env": "10.1.0",
-		"jsdom": "28.1.0",
+		"jsdom": "29.0.1",
 		"react": "19.2.4",
 		"react-dom": "19.2.4",
-		"size-limit": "12.0.0",
-		"tsdown": "0.20.3",
+		"size-limit": "12.0.1",
+		"tsdown": "0.21.4",
 		"typescript": "5.9.3",
-		"vitest": "4.0.18"
+		"vite": "8.0.1",
+		"vitest": "4.1.0"
 	},
 	"peerDependencies": {
 		"react": "^18.0.0 || ^19.0.0"

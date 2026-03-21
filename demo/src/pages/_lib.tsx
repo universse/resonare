@@ -7,7 +7,9 @@ import {
 import { resonareInlineScript } from 'resonare/inline-script'
 import { useResonare } from 'resonare/react'
 
-const config = {
+const STORE_KEY = 'demo'
+
+const STORE_CONFIG = {
 	color: {
 		options: ['neutral', 'red', 'orange', 'green', 'blue', 'purple', 'pink'],
 	},
@@ -34,32 +36,31 @@ const config = {
 	},
 } as const satisfies ThemeConfig
 
-const storeKey = 'demo'
-
 declare module 'resonare' {
 	interface ThemeStoreRegistry {
-		demo: ThemeStore<typeof config>
+		demo: ThemeStore<typeof STORE_CONFIG>
 	}
 }
 
 function initTheme({ key, config }: { key: string; config: ThemeConfig }) {
-	const themeStore = window.resonare.createThemeStore({
+	const store = window.resonare.createThemeStore({
 		key,
 		config,
 	})
 
-	themeStore.subscribe(({ resolvedThemes }) => {
-		Object.entries(resolvedThemes).forEach(([theme, option]) => {
-			document.documentElement.dataset[theme] = option
+	store.subscribe(({ resolvedThemes }) => {
+		Object.entries(resolvedThemes).forEach(([key, value]) => {
+			document.documentElement.dataset[key] = value
 		})
 	})
 
-	themeStore.restore()
-	themeStore.sync()
+	store.restore()
+
+	store.sync()
 }
 
 export const themeScript = `${resonareInlineScript}
-(${initTheme.toString()})(${JSON.stringify({ key: storeKey, config })})`
+(${initTheme.toString()})(${JSON.stringify({ key: STORE_KEY, config: STORE_CONFIG })})`
 
 const THEME_LABELS = {
 	color: 'color',
@@ -71,16 +72,15 @@ const THEME_LABELS = {
 
 export function ThemeSelect() {
 	const { themes, setThemes } = useResonare(() =>
-		window.resonare.getThemeStore(storeKey),
+		window.resonare.getThemeStore(STORE_KEY),
 	)
 
-	const themesAndOptions = getThemesAndOptions(config)
+	const themesAndOptions = getThemesAndOptions(STORE_CONFIG)
 
 	return (
 		<div className='theme-select'>
 			{themesAndOptions.map(([theme, options]) => (
 				<React.Fragment key={theme}>
-					{/* <input type="hidden" name="key" value={storeKey} /> */}
 					<label htmlFor={theme} style={{ textTransform: 'capitalize' }}>
 						{THEME_LABELS[theme]}
 					</label>
