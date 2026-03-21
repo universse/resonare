@@ -1,16 +1,18 @@
 # Resonare [![Version](https://img.shields.io/npm/v/resonare.svg?labelColor=black&color=blue)](https://www.npmjs.com/package/resonare)
 
-A configuration-based store for managing themes and user preferences.
+A configuration-based store for restoring user preferences without flash of inaccurate styles.
 
 ## Features
 
-- Define and manage multi-dimensional themes, e.g.:
+- Define and manage user preferences, e.g.:
   - Color scheme: system, light, dark
   - Contrast preference: standard, high
   - Spacing: compact, comfortable, spacious
+  - Showing/hiding sections
+  - Sidebar width
   - etc.
 - Framework-agnostic
-- Prevent theme flicker on page load
+- Prevent flicker on page load
 - Honor system preferences
 - Create sections with independent theming
 - Sync theme selection across tabs and windows
@@ -35,7 +37,7 @@ pnpm add resonare
 
 ## Basic Usage
 
-It's recommended to initialize Resonare in a synchronous script to avoid theme flicker on page load.
+It's recommended to initialize Resonare in a synchronous script to avoid flicker on page load.
 
 Load via CDN:
 
@@ -68,7 +70,7 @@ Load via CDN:
     })
 
     themeStore.restore()
-    
+
     themeStore.sync()
   })()
 </script>
