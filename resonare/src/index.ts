@@ -212,11 +212,11 @@ export class ThemeStore<T extends ThemeConfig> {
 		return this.#resolveThemes()
 	}
 
-	setThemes = async (
+	setThemes = (
 		themes:
 			| Partial<Themes<T>>
 			| ((currentThemes: Themes<T>) => Partial<Themes<T>>),
-	): Promise<void> => {
+	): void => {
 		const updatedThemes =
 			typeof themes === 'function' ? themes(this.#currentThemes) : themes
 
@@ -250,7 +250,7 @@ export class ThemeStore<T extends ThemeConfig> {
 		}
 	}
 
-	restore = () => {
+	restore = (): void => {
 		let persistedState = this.#storage?.get(this.#options.key)
 
 		if (!persistedState) {
@@ -298,15 +298,13 @@ export class ThemeStore<T extends ThemeConfig> {
 
 	sync = (): (() => void) | undefined => {
 		if (!this.#storage?.watch) {
-			if (!PROD) {
-				if (this.#storage) {
-					console.warn(
-						`[${PACKAGE_NAME}] No watch method was provided for storage.`,
-					)
-				} else {
-					console.warn(`[${PACKAGE_NAME}] No storage was provided.`)
-				}
-			}
+			// if (this.#storage) {
+			// 	console.warn(
+			// 		`[${PACKAGE_NAME}] No watch method was provided for storage.`,
+			// 	)
+			// } else {
+			// 	console.warn(`[${PACKAGE_NAME}] No storage was provided.`)
+			// }
 
 			return
 		}

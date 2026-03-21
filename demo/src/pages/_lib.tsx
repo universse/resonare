@@ -42,7 +42,7 @@ declare module 'resonare' {
 	}
 }
 
-export async function updateDom({
+export function initTheme({
 	key,
 	config,
 }: {
@@ -60,12 +60,12 @@ export async function updateDom({
 		})
 	})
 
-	await themeStore.restore()
+	themeStore.restore()
 	themeStore.sync()
 }
 
 export const themeScript = `${resonareInlineScript}
-(${updateDom.toString()})(${JSON.stringify({ key: storeKey, config })})`
+(${initTheme.toString()})(${JSON.stringify({ key: storeKey, config })})`
 
 const THEME_LABELS = {
 	color: 'color',
