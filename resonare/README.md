@@ -79,7 +79,7 @@ Load via CDN:
 Alternatively, inline the stringified version to reduce the number of HTTP requests:
 
 ```ts
-import { type ThemeConfig, type ThemeStore } from 'resonare'
+import type { ThemeStore, ThemeStoreConfig } from 'resonare'
 import { resonareInlineScript } from 'resonare/inline-script'
 
 const themeConfig = {
@@ -93,7 +93,7 @@ const themeConfig = {
       'dark',
     ],
   },
-} as const satisfies ThemeConfig
+} as const satisfies ThemeStoreConfig
 
 declare module 'resonare' {
   interface ThemeStoreRegistry {
@@ -101,7 +101,7 @@ declare module 'resonare' {
   }
 }
 
-function initTheme({ config }: { config: ThemeConfig }) {
+function initTheme({ config }: { config: ThemeStoreConfig }) {
   const themeStore = window.resonare.createThemeStore({ config })
 
   themeStore.subscribe(({ resolvedThemes }) => {
@@ -111,6 +111,7 @@ function initTheme({ config }: { config: ThemeConfig }) {
   })
 
   themeStore.restore()
+
   themeStore.sync()
 }
 
@@ -129,7 +130,7 @@ Add a triple-slash directive to any `.d.ts` file in your project (e.g. `env.d.ts
 ### `createThemeStore`
 
 ```ts
-import { createThemeStore, type ThemeConfig, type ThemeStore } from 'resonare'
+import { createThemeStore, type ThemeStore, type ThemeStoreConfig } from 'resonare'
 
 const themeConfig = {
   colorScheme: {
@@ -157,10 +158,8 @@ const themeConfig = {
     ],
     initialValue: 'standard',
   },
-  sidebarWidth: {
-    initialValue: 240,
-  },
-} as const satisfies ThemeConfig
+  sidebarWidth: 240,
+} as const satisfies ThemeStoreConfig
 
 declare module 'resonare' {
   interface ThemeStoreRegistry {
@@ -274,7 +273,7 @@ Ensure that you have initialized Resonare as per instructions under [Basic Usage
 
 ```tsx
 import * as React from 'react'
-import { getThemesAndOptions, type ThemeConfig } from 'resonare'
+import { getThemesAndOptions, type ThemeStoreConfig } from 'resonare'
 import { useResonare } from 'resonare/react'
 
 const themeConfig = {
@@ -288,7 +287,7 @@ const themeConfig = {
       'dark',
     ],
   },
-} as const satisfies ThemeConfig
+} as const satisfies ThemeStoreConfig
 
 function ThemeSelect() {
   const { themes, setThemes } = useResonare(() =>
@@ -326,7 +325,7 @@ import {
   createThemeStore,
   getThemesAndOptions,
   memoryStorageAdapter,
-  type ThemeConfig,
+  type ThemeStoreConfig,
 } from 'resonare'
 import { useResonare } from 'resonare/react'
 import * as React from 'react'
@@ -338,7 +337,7 @@ const themeConfig = {
   contrast: {
     options: ['standard', 'high'],
   },
-} as const satisfies ThemeConfig
+} as const satisfies ThemeStoreConfig
 
 export function ThemeSelect({ persistedStateFromDb }) {
   const [themeStore] = React.useState(() =>

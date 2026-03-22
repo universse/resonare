@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { ThemeConfig, ThemeStore } from '.'
+import type { ThemeStore, ThemeStoreConfig } from '.'
 
 function noop() {}
 const emptyObject = {}
@@ -16,7 +16,7 @@ const emptyStore = {
 	subscribe: () => noop,
 }
 
-export function useResonare<T extends ThemeConfig>(
+export function useResonare<T extends ThemeStoreConfig>(
 	getStore: () => ThemeStore<T>,
 	{ initOnMount = false } = {},
 ) {

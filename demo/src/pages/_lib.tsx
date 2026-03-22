@@ -1,8 +1,8 @@
 import * as React from 'react'
 import {
 	getThemesAndOptions,
-	type ThemeConfig,
 	type ThemeStore,
+	type ThemeStoreConfig,
 } from 'resonare'
 import { resonareInlineScript } from 'resonare/inline-script'
 import { useResonare } from 'resonare/react'
@@ -34,7 +34,7 @@ const STORE_CONFIG = {
 		options: ['80%', '90%', '100%', '110%', '120%'],
 		initialValue: '100%',
 	},
-} as const satisfies ThemeConfig
+} as const satisfies ThemeStoreConfig
 
 declare module 'resonare' {
 	interface ThemeStoreRegistry {
@@ -42,7 +42,7 @@ declare module 'resonare' {
 	}
 }
 
-function initTheme({ key, config }: { key: string; config: ThemeConfig }) {
+function initTheme({ key, config }: { key: string; config: ThemeStoreConfig }) {
 	const store = window.resonare.createThemeStore({
 		key,
 		config,

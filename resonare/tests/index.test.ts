@@ -6,8 +6,8 @@ import {
 	destroyThemeStore,
 	getThemeStore,
 	getThemesAndOptions,
-	type ThemeConfig,
 	type ThemeStore,
+	type ThemeStoreConfig,
 	type ThemeStoreOptions,
 } from '../dist'
 
@@ -27,10 +27,8 @@ const mockConfig = {
 	contrast: {
 		options: ['standard', 'high'],
 	},
-	sidebar: {
-		initialValue: 200,
-	},
-} as const satisfies ThemeConfig
+	sidebar: 200,
+} as const satisfies ThemeStoreConfig
 
 declare module '../dist' {
 	interface ThemeStoreRegistry {
@@ -116,7 +114,10 @@ describe('ThemeStore', () => {
 			sidebar: 300,
 		})
 
-		expect(mockStorage.set).toBeCalledWith('resonare', themeStore.toPersist())
+		expect(mockStorage.set).toHaveBeenCalledWith(
+			'resonare',
+			themeStore.toPersist(),
+		)
 	})
 
 	it('should respond to media query changes', () => {
@@ -141,7 +142,7 @@ describe('ThemeStore', () => {
 			sidebar: 200,
 		})
 
-		expect(mockStorage.set).toBeCalledWith('resonare', {
+		expect(mockStorage.set).toHaveBeenCalledWith('resonare', {
 			version: 1,
 			themes: {
 				colorScheme: 'system',
