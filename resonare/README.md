@@ -18,6 +18,7 @@ A configuration-based store for restoring user preferences without flash of inac
 - Sync theme selection across tabs and windows
 - Flexible client-side persistence options, defaulting to localStorage
 - Support server-side persistence
+- Type-safe
 
 ## Demo
 
@@ -64,9 +65,9 @@ Load via CDN:
     })
 
     themeStore.subscribe(({ resolvedThemes }) => {
-      for (const [theme, option] of Object.entries(resolvedThemes)) {
-        document.documentElement.dataset[theme] = option
-      }
+      Object.entries(resolvedThemes).forEach(([key, value]) => {
+        document.documentElement.dataset[key] = value
+      })
     })
 
     themeStore.restore()
@@ -105,8 +106,8 @@ function initTheme({ config }: { config: ThemeStoreConfig }) {
   const themeStore = window.resonare.createThemeStore({ config })
 
   themeStore.subscribe(({ resolvedThemes }) => {
-    Object.entries(resolvedThemes).forEach(([theme, option]) => {
-      document.documentElement.dataset[theme] = option
+    Object.entries(resolvedThemes).forEach(([key, value]) => {
+      document.documentElement.dataset[key] = value
     })
   })
 
@@ -239,13 +240,13 @@ themeStore.sync()
 
 // subscribe to theme changes
 themeStore.subscribe(({ themes, resolvedThemes }) => {
-  for (const [key, value] of Object.entries(resolvedThemes)) {
+  Object.entries(resolvedThemes).forEach(([key, value]) => {
     if (key === 'sidebarWidth') {
       document.documentElement.style.setProperty('--sidebar-width', `${value}px`)
     } else {
       document.documentElement.dataset[key] = value
     }
-  }
+  })
 })
 ```
 
