@@ -8,10 +8,9 @@ import {
 	getThemesAndOptions,
 	type ThemeStore,
 	type ThemeStoreConfig,
-	type ThemeStoreOptions,
 } from '../dist'
 
-const mockConfig = {
+const themeStoreConfig = {
 	colorScheme: {
 		options: [
 			{
@@ -32,7 +31,7 @@ const mockConfig = {
 
 declare module '../dist' {
 	interface ThemeStoreRegistry {
-		resonare: ThemeStore<typeof mockConfig>
+		resonare: ThemeStore<typeof themeStoreConfig>
 	}
 }
 
@@ -45,13 +44,13 @@ const mockStorage = {
 
 const mockOptions = {
 	key: 'resonare',
-	config: mockConfig,
+	config: themeStoreConfig,
 	storage: () => mockStorage,
-} as const satisfies ThemeStoreOptions<typeof mockConfig>
+} as const
 
 describe('getThemesAndOptions', () => {
 	it('should return the themes and options', () => {
-		const themesAndOptions = getThemesAndOptions(mockConfig)
+		const themesAndOptions = getThemesAndOptions(themeStoreConfig)
 
 		expect(themesAndOptions).toEqual([
 			[

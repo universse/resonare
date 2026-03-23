@@ -82,7 +82,7 @@ Alternatively, inline the stringified version to reduce the number of HTTP reque
 import type { ThemeStore, ThemeStoreConfig } from 'resonare'
 import { resonareInlineScript } from 'resonare/inline-script'
 
-const themeConfig = {
+const CONFIG = {
   colorScheme: {
     options: [
       {
@@ -97,7 +97,7 @@ const themeConfig = {
 
 declare module 'resonare' {
   interface ThemeStoreRegistry {
-    resonare: ThemeStore<typeof themeConfig>
+    resonare: ThemeStore<typeof CONFIG>
   }
 }
 
@@ -116,7 +116,7 @@ function initTheme({ config }: { config: ThemeStoreConfig }) {
 }
 
 export const themeScript = `${resonareInlineScript};
-(${initTheme.toString()})(${JSON.stringify({ config: themeConfig })})`
+(${initTheme.toString()})(${JSON.stringify({ config: CONFIG })})`
 ```
 
 Add a triple-slash directive to any `.d.ts` file in your project (e.g. `env.d.ts`):
@@ -132,7 +132,7 @@ Add a triple-slash directive to any `.d.ts` file in your project (e.g. `env.d.ts
 ```ts
 import { createThemeStore, type ThemeStore, type ThemeStoreConfig } from 'resonare'
 
-const themeConfig = {
+const CONFIG = {
   colorScheme: {
     options: [
       {
@@ -163,7 +163,7 @@ const themeConfig = {
 
 declare module 'resonare' {
   interface ThemeStoreRegistry {
-    resonare: ThemeStore<typeof themeConfig>
+    resonare: ThemeStore<typeof CONFIG>
   }
 }
 
@@ -173,7 +173,7 @@ const themeStore = createThemeStore({
   key: 'resonare',
 
   // required, specify theme and options
-  config: themeConfig,
+  config: CONFIG,
 
   // optional, useful for server-side persistence
   initialState: persistedStateFromDb, // persisted state returned by themeStore.toPersist()
@@ -276,7 +276,7 @@ import * as React from 'react'
 import { getThemesAndOptions, type ThemeStoreConfig } from 'resonare'
 import { useResonare } from 'resonare/react'
 
-const themeConfig = {
+const CONFIG = {
   colorScheme: {
     options: [
       {
@@ -294,7 +294,7 @@ function ThemeSelect() {
     window.resonare.getThemeStore(),
   )
 
-  return getThemesAndOptions(themeConfig).map(([theme, options]) => (
+  return getThemesAndOptions(CONFIG).map(([theme, options]) => (
     <div key={theme}>
       <label htmlFor={theme}>{theme}</label>
       <select
@@ -330,7 +330,7 @@ import {
 import { useResonare } from 'resonare/react'
 import * as React from 'react'
 
-const themeConfig = {
+const CONFIG = {
   colorScheme: {
     options: ['light', 'dark'],
   },
@@ -342,7 +342,7 @@ const themeConfig = {
 export function ThemeSelect({ persistedStateFromDb }) {
   const [themeStore] = React.useState(() =>
     createThemeStore({
-      config: themeConfig,
+      config: CONFIG,
       initialState: persistedStateFromDb,
       storage: memoryStorageAdapter(),
     }),
@@ -352,7 +352,7 @@ export function ThemeSelect({ persistedStateFromDb }) {
     initOnMount: true,
   })
 
-  return getThemesAndOptions(themeConfig).map(([theme, options]) => (
+  return getThemesAndOptions(CONFIG).map(([theme, options]) => (
     <div key={theme}>
       <label htmlFor={theme}>{theme}</label>
       <select
