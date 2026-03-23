@@ -21,7 +21,7 @@ type ThemeConfig<T extends ThemeValue = string> =
 			]
 			initialValue?: T
 	  }
-	| T
+	| { initialValue: T; options?: never }
 
 export type ThemeStoreConfig = Record<
 	string,
@@ -38,7 +38,7 @@ export type Themes<T extends ThemeStoreConfig> = {
 		? U extends ThemeOption
 			? U['value']
 			: U
-		: T[K] extends infer U
+		: T[K] extends { initialValue: infer U }
 			? U extends string
 				? string
 				: U extends number
@@ -112,11 +112,9 @@ export function getThemesAndOptions<T extends ThemeStoreConfig>(config: T) {
 	return Object.entries(config).map(([themeKey, themeConfig]) => {
 		return [
 			themeKey,
-			typeof themeConfig === 'object'
-				? themeConfig.options.map((option) =>
-						typeof option === 'object' ? option.value : option,
-					)
-				: [],
+			(themeConfig.options || []).map((option) =>
+				typeof option === 'object' ? option.value : option,
+			),
 		]
 	}) as ThemeAndOptions<T>
 }
@@ -124,17 +122,13 @@ export function getThemesAndOptions<T extends ThemeStoreConfig>(config: T) {
 export function getDefaultThemes<T extends ThemeStoreConfig>(config: T) {
 	return Object.fromEntries(
 		Object.entries(config).map(([themeKey, themeConfig]) => {
-			if (typeof themeConfig === 'object') {
-				return [
-					themeKey,
-					themeConfig.initialValue ??
-						(typeof themeConfig.options[0] === 'object'
-							? themeConfig.options[0].value
-							: themeConfig.options[0]),
-				]
-			} else {
-				return [themeKey, themeConfig]
-			}
+			return [
+				themeKey,
+				themeConfig.initialValue ??
+					(typeof themeConfig.options[0] === 'object'
+						? themeConfig.options[0].value
+						: themeConfig.options[0]),
+			]
 		}),
 	) as Themes<T>
 }
@@ -170,18 +164,17 @@ export class ThemeStore<T extends ThemeStoreConfig> {
 
 		const keyedConfig = Object.fromEntries(
 			Object.entries(config).map(([themeKey, themeConfig]) => {
-				const entries =
-					typeof themeConfig === 'object'
-						? themeConfig.options.map((option) => {
-								if (typeof option === 'object') {
-									if (option.media && !Object.hasOwn(systemOptions, themeKey)) {
-										systemOptions[themeKey] = [option.media[1], option.media[2]]
-									}
-									return [String(option.value), option]
-								}
-								return [String(option), { value: option }]
-							})
-						: []
+				const entries = (themeConfig.options || []).map((option) => {
+					if (typeof option === 'object') {
+						if (option.media && !Object.hasOwn(systemOptions, themeKey)) {
+							systemOptions[themeKey] = [option.media[1], option.media[2]]
+						}
+
+						return [String(option.value), option]
+					}
+
+					return [String(option), { value: option }]
+				})
 				return [themeKey, Object.fromEntries(entries)]
 			}),
 		) as KeyedThemeStoreConfig<T>

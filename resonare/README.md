@@ -158,7 +158,9 @@ const CONFIG = {
     ],
     initialValue: 'standard',
   },
-  sidebarWidth: 240,
+  sidebarWidth: {
+    initialValue: 240,
+  },
 } as const satisfies ThemeStoreConfig
 
 declare module 'resonare' {

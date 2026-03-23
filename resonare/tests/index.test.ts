@@ -26,7 +26,7 @@ const themeStoreConfig = {
 	contrast: {
 		options: ['standard', 'high'],
 	},
-	sidebar: 200,
+	sidebar: { initialValue: 200 },
 } as const satisfies ThemeStoreConfig
 
 declare module '../dist' {
