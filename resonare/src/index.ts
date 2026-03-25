@@ -408,7 +408,9 @@ class Registry {
 		return store
 	}
 
-	get = <T extends keyof ThemeStoreRegistry>(key?: T) => {
+	get = <T extends keyof ThemeStoreRegistry>(
+		key?: T,
+	): ThemeStoreRegistry[T] | undefined => {
 		const storeKey = key || PACKAGE_NAME
 
 		const store = this.#registry.get(storeKey)
