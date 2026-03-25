@@ -14,11 +14,7 @@ type ThemeOption<T extends ThemeValue = string> = {
 
 type ThemeConfig<T extends ThemeValue = string> =
 	| {
-			options: [
-				T | ThemeOption<T>,
-				T | ThemeOption<T>,
-				...ReadonlyArray<T | ThemeOption<T>>,
-			]
+			options: ReadonlyArray<T | ThemeOption<T>>
 			initialValue?: T
 	  }
 	| { initialValue: T; options?: never }
