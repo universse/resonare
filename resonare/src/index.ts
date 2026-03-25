@@ -397,37 +397,45 @@ class Registry {
 	): ThemeStore<T> => {
 		const storeKey = params.key || PACKAGE_NAME
 
-		let themeStore = this.#registry.get(storeKey) as ThemeStore<T>
+		let store = this.#registry.get(storeKey) as ThemeStore<T>
 
-		if (!themeStore) {
-			themeStore = new ThemeStore<T>(params)
-			this.#registry.set(storeKey, themeStore as ThemeStore<ThemeStoreConfig>)
+		if (!store) {
+			store = new ThemeStore<T>(params)
+
+			this.#registry.set(storeKey, store as ThemeStore<ThemeStoreConfig>)
 		}
 
-		return themeStore
+		return store
 	}
 
 	get = <T extends keyof ThemeStoreRegistry>(key?: T) => {
 		const storeKey = key || PACKAGE_NAME
 
-		if (!this.#registry.has(storeKey)) {
+		const store = this.#registry.get(storeKey)
+
+		if (!store) {
 			if (IIFE) {
-				throw new Error(`Theme store '${storeKey}' not found.`)
+				console.error(`Theme store '${storeKey}' not found.`)
+			} else {
+				console.error(
+					`[${PACKAGE_NAME}] Theme store with key '${storeKey}' could not be found. Please run \`createThemeStore\` with key '${storeKey}' first.`,
+				)
 			}
-			throw new Error(
-				`[${PACKAGE_NAME}] Theme store with key '${storeKey}' could not be found. Please run \`createThemeStore\` with key '${storeKey}' first.`,
-			)
+			return
 		}
 
-		return this.#registry.get(storeKey)! as ThemeStoreRegistry[T]
+		return store as ThemeStoreRegistry[T]
 	}
 
 	destroy = <T extends keyof ThemeStoreRegistry>(key?: T) => {
 		const storeKey = key || PACKAGE_NAME
 
-		if (!this.#registry.has(storeKey)) return
+		const store = this.#registry.get(storeKey)
 
-		this.#registry.get(storeKey)!.___destroy()
+		if (!store) return
+
+		store.___destroy()
+
 		this.#registry.delete(storeKey)
 	}
 }

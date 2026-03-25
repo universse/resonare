@@ -248,7 +248,7 @@ describe('ThemeStore', () => {
 	})
 })
 
-describe('create and read functions', () => {
+describe('registry functions', () => {
 	it('should create and read a ThemeStore instance', () => {
 		const themeStore = createThemeStore(mockOptions)
 
@@ -262,11 +262,11 @@ describe('create and read functions', () => {
 
 		destroyThemeStore(mockOptions.key)
 
-		expect(() => getThemeStore(mockOptions.key)).toThrow()
+		expect(getThemeStore(mockOptions.key)).toBeUndefined()
 	})
 
-	it('should throw an error when reading a non-existent ThemeStore', () => {
-		expect(() => getThemeStore('non-existent' as any)).toThrow()
+	it('should return nothing when reading a non-existent ThemeStore', () => {
+		expect(getThemeStore('non-existent' as any)).toBeUndefined()
 	})
 })
 
