@@ -1,11 +1,11 @@
-import { name as PACKAGE_NAME } from '../package.json' with { type: 'json' }
+import { name as PACKAGE_NAME } from '../../package.json' with { type: 'json' }
 
 export type StorageAdapter = {
-	get: (key: string) => object | null
-	set: (key: string, value: object) => void
-	// del: (key: string) => void
-	broadcast?: (key: string, value: object) => void
-	watch?: (cb: (key: string | null, value: object) => void) => () => void
+	get: () => object | null
+	set: (value: object) => void
+	// del: () => void
+	broadcast?: (value: object) => void
+	watch?: (cb: (value: object) => void) => () => void
 }
 
 export type StorageAdapterCreate = ({
@@ -15,23 +15,24 @@ export type StorageAdapterCreate = ({
 }) => StorageAdapter
 
 export type StorageAdapterCreator<Options> = (
-	options?: Options,
+	options: Options,
 ) => StorageAdapterCreate
 
 export const localStorageAdapter: StorageAdapterCreator<{
+	key: string
 	type?: 'localStorage' | 'sessionStorage'
-}> = ({ type = 'localStorage' } = {}) => {
+}> = ({ key, type = 'localStorage' }) => {
 	return ({ abortController }) => {
 		return {
-			get: (key: string) => {
+			get: () => {
 				return JSON.parse(window[type].getItem(key) || 'null')
 			},
 
-			set: (key: string, value: object) => {
+			set: (value: object) => {
 				window[type].setItem(key, JSON.stringify(value))
 			},
 
-			// del: (key: string) => {
+			// del: () => {
 			// 	window[type].removeItem(key)
 			// },
 
@@ -43,7 +44,9 @@ export const localStorageAdapter: StorageAdapterCreator<{
 					(e) => {
 						if (e.storageArea !== window[type]) return
 
-						cb(e.key, JSON.parse(e.newValue!))
+						if (e.key !== key) return
+
+						cb(JSON.parse(e.newValue!))
 					},
 					{
 						signal: AbortSignal.any([
@@ -61,25 +64,27 @@ export const localStorageAdapter: StorageAdapterCreator<{
 	}
 }
 
-export const memoryStorageAdapter: StorageAdapterCreator<never> = () => {
+export const memoryStorageAdapter: StorageAdapterCreator<{
+	key: string
+}> = ({ key }) => {
 	return ({ abortController }) => {
 		const storage = new Map<string, object>()
 		const channel = new BroadcastChannel(PACKAGE_NAME)
 
 		return {
-			get: (key: string) => {
+			get: () => {
 				return storage.get(key) || null
 			},
 
-			set: (key: string, value: object) => {
+			set: (value: object) => {
 				storage.set(key, value)
 			},
 
-			// del: (key: string) => {
+			// del: () => {
 			// 	storage.delete(key)
 			// },
 
-			broadcast: (key: string, value: object) => {
+			broadcast: (value: object) => {
 				channel.postMessage({ key, value })
 			},
 
@@ -89,7 +94,9 @@ export const memoryStorageAdapter: StorageAdapterCreator<never> = () => {
 				channel.addEventListener(
 					'message',
 					(e) => {
-						cb(e.data.key, e.data.value)
+						if (e.data.key !== key) return
+
+						cb(e.data.value)
 					},
 					{
 						signal: AbortSignal.any([

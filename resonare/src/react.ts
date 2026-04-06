@@ -1,31 +1,7 @@
 import * as React from 'react'
 import type { ThemeStore, ThemeStoreConfig } from '.'
 
-function noop() {}
-const emptyObject = {}
-
-const emptyStore = {
-	getThemes: () => emptyObject,
-	getResolvedThemes: () => emptyObject,
-	setThemes: noop,
-	updateSystemOption: noop,
-	toPersist: noop,
-	restore: noop,
-	sync: noop,
-	// clear: noop,
-	subscribe: () => noop,
-}
-
-export function useResonare<T extends ThemeStoreConfig>(
-	getStore: () => ThemeStore<T>,
-	{ initOnMount = false } = {},
-) {
-	const [isMounted, setIsMounted] = React.useState(initOnMount)
-
-	React.useEffect(() => {
-		setIsMounted(true)
-	}, [])
-
+export function useResonare<T extends ThemeStoreConfig>(store: ThemeStore<T>) {
 	const {
 		getThemes,
 		getResolvedThemes,
@@ -34,9 +10,9 @@ export function useResonare<T extends ThemeStoreConfig>(
 		toPersist,
 		restore,
 		sync,
-		// clear,
 		subscribe,
-	} = isMounted ? getStore() : (emptyStore as unknown as ThemeStore<T>)
+		destroy,
+	} = store
 
 	const themes = React.useSyncExternalStore(subscribe, getThemes, getThemes)
 
@@ -48,7 +24,7 @@ export function useResonare<T extends ThemeStoreConfig>(
 		toPersist,
 		restore,
 		sync,
-		// clear,
 		subscribe,
+		destroy,
 	}
 }

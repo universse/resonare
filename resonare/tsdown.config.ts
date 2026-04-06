@@ -1,13 +1,11 @@
 import babel from '@rolldown/plugin-babel'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import { defineConfig } from 'tsdown'
-import packageJson from './package.json' with { type: 'json' }
 
 declare global {
 	namespace NodeJS {
 		interface ProcessEnv {
 			CI: string | undefined
-			NODE_ENV: string
 		}
 	}
 }
@@ -17,48 +15,6 @@ const define = {
 }
 
 export default defineConfig([
-	{
-		entry: {
-			[packageJson.name]: 'src/umd.ts',
-		},
-		format: 'iife',
-		globalName: packageJson.name,
-		outExtensions() {
-			return { js: '.min.js' }
-		},
-
-		banner: {
-			js: `/**
-* ${packageJson.name} v${packageJson.version}
-*
-* This source code is licensed under the MIT license found in the
-* LICENSE file in the root directory of this source tree.
-*/`,
-		},
-		platform: 'browser',
-
-		clean: true,
-		define: { ...define, IIFE: 'true' },
-		minify: !!process.env.CI,
-
-		plugins: [
-			{
-				name: 'generate-inline-script-ts',
-				async generateBundle(_, bundle) {
-					const output = Object.values(bundle)[0]!
-
-					if (output.type !== 'chunk') return
-
-					this.emitFile({
-						type: 'asset',
-						fileName: 'inline-script.ts',
-						source: `export const resonareInlineScript = ${JSON.stringify(output.code)}`,
-					})
-				},
-			},
-		],
-	},
-
 	{
 		entry: ['src/index.ts', 'src/react.ts'],
 		dts: {
@@ -74,10 +30,7 @@ export default defineConfig([
 		],
 
 		clean: true,
-		define: {
-			...define,
-			IIFE: 'false',
-			PROD: 'process.env.NODE_ENV === "production"',
-		},
+		minify: !!process.env.CI,
+		define,
 	},
 ])

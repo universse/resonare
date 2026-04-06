@@ -1,7 +1,6 @@
 {
 	"compilerOptions": {
 		"allowJs": true,
-		"baseUrl": ".",
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"checkJs": true,
 		"esModuleInterop": true,
@@ -18,6 +17,9 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"outDir": "dist",
+		"paths": {
+			"*": ["./*"]
+		},
 		"preserveWatchOutput": true,
 		"resolveJsonModule": true,
 		"rootDir": "./",

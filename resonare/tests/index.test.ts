@@ -3,14 +3,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	createThemeStore,
-	destroyThemeStore,
-	getThemeStore,
 	getThemesAndOptions,
-	type ThemeStore,
 	type ThemeStoreConfig,
 } from '../dist'
 
-const themeStoreConfig = {
+const CONFIG = {
 	colorScheme: {
 		options: [
 			{
@@ -29,12 +26,6 @@ const themeStoreConfig = {
 	sidebar: { initialValue: 200 },
 } as const satisfies ThemeStoreConfig
 
-declare module '../dist' {
-	interface ThemeStoreRegistry {
-		resonare: ThemeStore<typeof themeStoreConfig>
-	}
-}
-
 const mockStorage = {
 	get: vi.fn(),
 	set: vi.fn(),
@@ -42,15 +33,13 @@ const mockStorage = {
 	watch: vi.fn(),
 }
 
-const mockOptions = {
-	key: 'resonare',
-	config: themeStoreConfig,
+const OPTIONS = {
 	storage: () => mockStorage,
 } as const
 
 describe('getThemesAndOptions', () => {
 	it('should return the themes and options', () => {
-		const themesAndOptions = getThemesAndOptions(themeStoreConfig)
+		const themesAndOptions = getThemesAndOptions(CONFIG)
 
 		expect(themesAndOptions).toEqual([
 			[
@@ -67,8 +56,6 @@ describe('ThemeStore', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 
-		destroyThemeStore('resonare')
-
 		setSystemColorScheme('light')
 	})
 
@@ -77,13 +64,13 @@ describe('ThemeStore', () => {
 	})
 
 	it('should create a ThemeStore instance', () => {
-		const themeStore = createThemeStore(mockOptions)
+		const themeStore = createThemeStore(CONFIG, OPTIONS)
 
 		expect(themeStore).toBeDefined()
 	})
 
 	it('should get default themes', () => {
-		const themeStore = createThemeStore(mockOptions)
+		const themeStore = createThemeStore(CONFIG, OPTIONS)
 
 		expect(themeStore.getThemes()).toEqual({
 			colorScheme: 'system',
@@ -99,7 +86,7 @@ describe('ThemeStore', () => {
 	})
 
 	it('should set themes', () => {
-		const themeStore = createThemeStore(mockOptions)
+		const themeStore = createThemeStore(CONFIG, OPTIONS)
 
 		themeStore.setThemes({
 			colorScheme: 'dark',
@@ -113,16 +100,13 @@ describe('ThemeStore', () => {
 			sidebar: 300,
 		})
 
-		expect(mockStorage.set).toHaveBeenCalledWith(
-			'resonare',
-			themeStore.toPersist(),
-		)
+		expect(mockStorage.set).toHaveBeenCalledWith(themeStore.toPersist())
 	})
 
 	it('should respond to media query changes', () => {
 		setSystemColorScheme('dark')
 
-		const themeStore = createThemeStore(mockOptions)
+		const themeStore = createThemeStore(CONFIG, OPTIONS)
 
 		expect(themeStore.getResolvedThemes()).toEqual({
 			colorScheme: 'dark',
@@ -141,8 +125,7 @@ describe('ThemeStore', () => {
 			sidebar: 200,
 		})
 
-		expect(mockStorage.set).toHaveBeenCalledWith('resonare', {
-			version: 1,
+		expect(mockStorage.set).toHaveBeenCalledWith({
 			themes: {
 				colorScheme: 'system',
 				contrast: 'standard',
@@ -157,10 +140,9 @@ describe('ThemeStore', () => {
 	it('should restore from initial state', () => {
 		setSystemColorScheme('dark')
 
-		const themeStore = createThemeStore({
-			...mockOptions,
+		const themeStore = createThemeStore(CONFIG, {
+			...OPTIONS,
 			initialState: {
-				version: 1,
 				themes: {
 					colorScheme: 'system',
 					contrast: 'high',
@@ -189,7 +171,6 @@ describe('ThemeStore', () => {
 		setSystemColorScheme('dark')
 
 		mockStorage.get.mockReturnValue({
-			version: 1,
 			themes: {
 				colorScheme: 'system',
 				contrast: 'high',
@@ -200,7 +181,7 @@ describe('ThemeStore', () => {
 			},
 		})
 
-		const themeStore = createThemeStore(mockOptions)
+		const themeStore = createThemeStore(CONFIG, OPTIONS)
 
 		themeStore.restore()
 
@@ -218,11 +199,11 @@ describe('ThemeStore', () => {
 	})
 
 	it('should subscribe and unsubscribe to theme changes', () => {
-		const themeStore = createThemeStore(mockOptions)
+		const themeStore = createThemeStore(CONFIG, OPTIONS)
 
 		const mockListener = vi.fn()
 
-		const unsubscribe = themeStore.subscribe(mockListener, { immediate: true })
+		const unsubscribe = themeStore.subscribe(mockListener)
 
 		themeStore.setThemes({ contrast: 'high' })
 
@@ -231,42 +212,11 @@ describe('ThemeStore', () => {
 		themeStore.setThemes({ contrast: 'standard' })
 
 		expect(mockListener).toHaveBeenNthCalledWith(1, {
-			themes: { colorScheme: 'system', contrast: 'standard', sidebar: 200 },
-			resolvedThemes: {
-				colorScheme: 'light',
-				contrast: 'standard',
-				sidebar: 200,
-			},
-		})
-
-		expect(mockListener).toHaveBeenNthCalledWith(2, {
 			themes: { colorScheme: 'system', contrast: 'high', sidebar: 200 },
 			resolvedThemes: { colorScheme: 'light', contrast: 'high', sidebar: 200 },
 		})
 
-		expect(mockListener).toHaveBeenCalledTimes(2)
-	})
-})
-
-describe('registry functions', () => {
-	it('should create and read a ThemeStore instance', () => {
-		const themeStore = createThemeStore(mockOptions)
-
-		const store = getThemeStore('resonare')
-
-		expect(store).toBe(themeStore)
-	})
-
-	it('should destroy', () => {
-		createThemeStore(mockOptions)
-
-		destroyThemeStore(mockOptions.key)
-
-		expect(getThemeStore(mockOptions.key)).toBeUndefined()
-	})
-
-	it('should return nothing when reading a non-existent ThemeStore', () => {
-		expect(getThemeStore('non-existent' as any)).toBeUndefined()
+		expect(mockListener).toHaveBeenCalledTimes(1)
 	})
 })
 

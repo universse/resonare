@@ -1,3 +1,6 @@
 packages:
   - demo
   - resonare
+
+onlyBuiltDependencies:
+  - workerd
