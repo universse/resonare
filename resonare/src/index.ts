@@ -270,6 +270,7 @@ class ThemeStore<T extends ThemeStoreConfig> {
 		})
 	}
 
+	/** Clears subscribers and aborts media-query listeners tied to this store instance. */
 	destroy = (): void => {
 		this.#listeners.clear()
 		this.#abortController.abort()
@@ -415,17 +416,41 @@ const restoreThemesString = (({
 	)
 }).toString()
 
+export type ThemeScriptParameter = {
+	/** `localStorage` key; defaults to the 'resonare'. */
+	key?: string
+	config: ThemeStoreConfig
+	handler: Listener<ThemeStoreConfig>
+}
+
+/**
+ * Creates an IIFE script string that reads persisted themes from `localStorage` and runs your handlers immediately.
+ *
+ * Useful for avoiding flash of incorrect styles.
+ * @example
+ * ```tsx
+ * import { createInlineThemeScript } from 'resonare'
+ *
+ * const inlineScript = createInlineThemeScript([
+ *   {
+ *     key: 'my-app',
+ *     config: { options: ['light', 'dark'] },
+ *     handler: ({ resolvedThemes }) => {
+ *       document.documentElement.dataset.mode = String(resolvedThemes.mode)
+ *     },
+ *   },
+ * ])
+ *
+ * <script>{inlineScript}</script>
+ * ```
+ */
 export function createInlineThemeScript(
-	configs: Array<{
-		key?: string
-		config: ThemeStoreConfig
-		handler: Listener<ThemeStoreConfig>
-	}>,
+	themeScriptParameters: Array<ThemeScriptParameter>,
 ) {
-	const serializedConfigs = configs.map(
+	const serializedThemeScriptParameters = themeScriptParameters.map(
 		({ key = PACKAGE_NAME, config, handler }) =>
 			`{key:${JSON.stringify(key)},config:${JSON.stringify(config)},h:${handler.toString()}}`,
 	)
 
-	return `(()=>{var r=${restoreThemesString};[${serializedConfigs.join(',')}].forEach((c)=>c.h(r(c)))})()`
+	return `(()=>{var r=${restoreThemesString};[${serializedThemeScriptParameters.join(',')}].forEach((c)=>c.h(r(c)))})()`
 }

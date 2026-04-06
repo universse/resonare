@@ -1,10 +1,14 @@
 import { name as PACKAGE_NAME } from '../../package.json' with { type: 'json' }
 
+/**
+ * Pluggable persistence for `createThemeStore`.
+ */
 export type StorageAdapter = {
 	get: () => object | null
 	set: (value: object) => void
-	// del: () => void
+	/** Optional: notify other tabs/contexts after local `set` operation. */
 	broadcast?: (value: object) => void
+	/** Optional: subscribes to other tabs/contexts' updates, returns `unsubscribe` function. */
 	watch?: (cb: (value: object) => void) => () => void
 }
 
@@ -18,6 +22,18 @@ export type StorageAdapterCreator<Options> = (
 	options: Options,
 ) => StorageAdapterCreate
 
+/**
+ * Persists theme store in `localStorage` or `sessionStorage`.
+ * @example
+ * ```ts
+ * import { createThemeStore, localStorageAdapter } from 'resonare'
+ *
+ * const store = createThemeStore(
+ *   { mode: { options: ['light', 'dark'] },
+ *   { storage: localStorageAdapter({ key: 'app', type: 'localStorage' }) },
+ * )
+ * ```
+ */
 export const localStorageAdapter: StorageAdapterCreator<{
 	key: string
 	type?: 'localStorage' | 'sessionStorage'
@@ -31,10 +47,6 @@ export const localStorageAdapter: StorageAdapterCreator<{
 			set: (value: object) => {
 				window[type].setItem(key, JSON.stringify(value))
 			},
-
-			// del: () => {
-			// 	window[type].removeItem(key)
-			// },
 
 			watch: (cb) => {
 				const controller = new AbortController()
@@ -64,6 +76,19 @@ export const localStorageAdapter: StorageAdapterCreator<{
 	}
 }
 
+/**
+ * In-memory persistence and sync via `BroadcastChannel`.
+ * Useful with server-side persistence.
+ * @example
+ * ```ts
+ * import { createThemeStore, memoryStorageAdapter } from 'resonare'
+ *
+ * const store = createThemeStore(
+ *   { mode: { options: ['light', 'dark'] } },
+ *   { storage: memoryStorageAdapter({ key: 'preview' }) },
+ * )
+ * ```
+ */
 export const memoryStorageAdapter: StorageAdapterCreator<{
 	key: string
 }> = ({ key }) => {
@@ -79,10 +104,6 @@ export const memoryStorageAdapter: StorageAdapterCreator<{
 			set: (value: object) => {
 				storage.set(key, value)
 			},
-
-			// del: () => {
-			// 	storage.delete(key)
-			// },
 
 			broadcast: (value: object) => {
 				channel.postMessage({ key, value })

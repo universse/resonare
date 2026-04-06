@@ -1,6 +1,6 @@
 # Resonare [![Version](https://img.shields.io/npm/v/resonare.svg?labelColor=black&color=blue)](https://www.npmjs.com/package/resonare)
 
-A configuration-based store for restoring user preferences without flash of inaccurate styles.
+A configuration-based store for restoring user preferences without a flash of incorrect styles.
 
 ## Features
 
@@ -72,7 +72,7 @@ export const themeScript = createInlineThemeScript([
 
 ### 2. Inject inline script
 
-Inject the script as below into the `<head>` of your HTML document. This differs by framework. See the examples below.
+Inject the script into the `<head>` of your HTML document as shown below. The exact pattern differs by framework; see the examples below.
 
 ```tsx
 // React.js
@@ -221,16 +221,15 @@ const script = createInlineThemeScript([
 #### Client-side persistence
 
 ```tsx
-import * as React from 'react'
 import {
   createInlineThemeScript,
   createThemeStore,
   getThemesAndOptions,
-  type ThemeStoreConfig,
+  type ThemeScriptParameter,
 } from 'resonare'
 import { useResonare } from 'resonare/react'
 
-const STORE = {
+const PARAM = {
   key: 'demo',
   config: {
     colorScheme: {
@@ -263,31 +262,24 @@ const STORE = {
       document.documentElement.dataset[key] = String(value)
     })
   },
-} as const satisfies Parameters<typeof createInlineThemeScript>[0][number]
+} as const satisfies ThemeScriptParameter
 
-export const themeScript = createInlineThemeScript([STORE])
+export const themeScript = createInlineThemeScript([PARAM])
 
-const themeStore = createThemeStore(STORE.config)
+const themeStore = createThemeStore(PARAM.config)
+
+if (typeof window !== 'undefined') {
+  themeStore.subscribe(PARAM.handler)
+
+  themeStore.restore()
+
+  themeStore.sync()
+}
 
 function ThemeSelect() {
-  const { themes, setThemes, restore, subscribe, sync } =
-    useResonare(themeStore)
+  const { themes, setThemes } = useResonare(themeStore)
 
-  React.useEffect(() => {
-    restore()
-
-    const unsubscribe = subscribe(STORE.handler)
-
-    const stopSync = sync()
-
-    return () => {
-      unsubscribe()
-
-      stopSync?.()
-    }
-  }, [restore, subscribe, sync])
-
-  return getThemesAndOptions(STORE.config).map(([theme, options]) => (
+  return getThemesAndOptions(PARAM.config).map(([theme, options]) => (
     <div key={theme}>
       <label htmlFor={theme}>{theme}</label>
       <select
@@ -341,12 +333,9 @@ export function ThemeSelect({ persistedStateFromDb }) {
     }),
   )
 
-  const { themes, setThemes, restore, subscribe, sync } =
-    useResonare(themeStore)
+  const { themes, setThemes, subscribe, sync } = useResonare(themeStore)
 
   React.useEffect(() => {
-    restore()
-
     const unsubscribe = subscribe(({ resolvedThemes }) => {
       Object.entries(resolvedThemes).forEach(([key, value]) => {
         document.documentElement.dataset[key] = String(value)
@@ -360,7 +349,7 @@ export function ThemeSelect({ persistedStateFromDb }) {
 
       stopSync?.()
     }
-  }, [restore, subscribe, sync])
+  }, [subscribe, sync])
 
   return getThemesAndOptions(CONFIG).map(([theme, options]) => (
     <div key={theme}>

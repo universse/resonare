@@ -4,10 +4,11 @@ import {
 	createThemeStore,
 	getThemesAndOptions,
 	localStorageAdapter,
+	type ThemeScriptParameter,
 } from 'resonare'
 import { useResonare } from 'resonare/react'
 
-const STORE = {
+const PARAM = {
 	key: 'demo',
 	config: {
 		color: {
@@ -40,9 +41,9 @@ const STORE = {
 			document.documentElement.dataset[key] = String(value)
 		})
 	},
-} as const satisfies Parameters<typeof createInlineThemeScript>[0][number]
+} as const satisfies ThemeScriptParameter
 
-export const themeScript = createInlineThemeScript([STORE])
+export const themeScript = createInlineThemeScript([PARAM])
 
 const THEME_LABELS = {
 	color: 'color',
@@ -52,26 +53,22 @@ const THEME_LABELS = {
 	fontSize: 'font size',
 } as const
 
-const themeStore = createThemeStore(STORE.config, {
-	storage: localStorageAdapter({ key: STORE.key }),
+const themeStore = createThemeStore(PARAM.config, {
+	storage: localStorageAdapter({ key: PARAM.key }),
 })
 
+if (typeof window !== 'undefined') {
+	themeStore.subscribe(PARAM.handler)
+
+	themeStore.restore()
+
+	themeStore.sync()
+}
+
 export function ThemeSelect() {
-	const { themes, setThemes, restore, subscribe, sync } =
-		useResonare(themeStore)
+	const { themes, setThemes } = useResonare(themeStore)
 
-	React.useEffect(() => {
-		restore()
-		const unsubscribe = subscribe(STORE.handler)
-		const stopSync = sync()
-
-		return () => {
-			unsubscribe()
-			stopSync?.()
-		}
-	}, [restore, subscribe, sync])
-
-	const themesAndOptions = getThemesAndOptions(STORE.config)
+	const themesAndOptions = getThemesAndOptions(PARAM.config)
 
 	return (
 		<div className='theme-select'>
