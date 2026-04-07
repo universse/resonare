@@ -1,10 +1,10 @@
 # Resonare [![Version](https://img.shields.io/npm/v/resonare.svg?labelColor=black&color=blue)](https://www.npmjs.com/package/resonare)
 
-A configuration-based store for restoring user preferences without a flash of incorrect styles.
+ A state store for multi-dimensional themes and user preferences. 
 
 ## Features
 
-- Define and manage user preferences, e.g.:
+- Define and manage themes and user preferences, e.g.:
   - Color scheme: system, light, dark
   - Contrast preference: standard, high
   - Spacing: compact, comfortable, spacious
