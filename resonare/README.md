@@ -8,8 +8,7 @@
   - Color scheme: system, light, dark
   - Contrast preference: standard, high
   - Spacing: compact, comfortable, spacious
-  - Showing/hiding sections
-  - Sidebar width
+  - Showing, hiding, or collapsing sidebar/sections
   - etc.
 - Framework-agnostic
 - Prevent flicker on page load
@@ -72,7 +71,7 @@ export const themeScript = createInlineThemeScript([
 
 ### 2. Inject inline script
 
-Inject the script into the `<head>` of your HTML document as shown below. The exact pattern differs by framework; see the examples below.
+Inject the script into the `<head>` of your HTML document. The exact pattern differs by framework. Here are some examples.
 
 ```tsx
 // React.js
