@@ -1,4 +1,4 @@
-import { name as PACKAGE_NAME } from '../../package.json' with { type: 'json' }
+import { name as PACKAGE_NAME } from '../package.json' with { type: 'json' }
 
 /**
  * Pluggable persistence for `createThemeStore`.
@@ -29,7 +29,7 @@ export type StorageAdapterCreator<Options> = (
  * import { createThemeStore, localStorageAdapter } from 'resonare'
  *
  * const store = createThemeStore(
- *   { mode: { options: ['light', 'dark'] },
+ *   { colorMode: { options: ['light', 'dark'] },
  *   { storage: localStorageAdapter({ key: 'app', type: 'localStorage' }) },
  * )
  * ```
@@ -84,8 +84,8 @@ export const localStorageAdapter: StorageAdapterCreator<{
  * import { createThemeStore, memoryStorageAdapter } from 'resonare'
  *
  * const store = createThemeStore(
- *   { mode: { options: ['light', 'dark'] } },
- *   { storage: memoryStorageAdapter({ key: 'preview' }) },
+ *   { colorMode: { options: ['light', 'dark'] },
+ *   { storage: memoryStorageAdapter({ key: 'app' }) },
  * )
  * ```
  */

@@ -1,4 +1,4 @@
-import { name as PACKAGE_NAME } from '../../package.json' with { type: 'json' }
+import { name as PACKAGE_NAME } from '../package.json' with { type: 'json' }
 import {
 	localStorageAdapter,
 	type StorageAdapter,
@@ -88,7 +88,7 @@ type ThemeStoreOptions<T extends ThemeStoreConfig> = {
 	storage?: StorageAdapterCreate | null
 }
 
-export type ThemeAndOptions<T extends ThemeStoreConfig> = Array<
+type ThemeAndOptions<T extends ThemeStoreConfig> = Array<
 	{
 		[K in keyof T]: [
 			K,
@@ -310,9 +310,11 @@ class ThemeStore<T extends ThemeStoreConfig> {
 				typeof window.document.createElement !== 'undefined'
 			)
 		) {
-			console.warn(
-				`[${PACKAGE_NAME}] Option with key "media" cannot be resolved in server environment.`,
-			)
+			if (!PROD) {
+				console.warn(
+					`[${PACKAGE_NAME}] Option with key "media" cannot be resolved in server environment.`,
+				)
+			}
 
 			return option.value
 		}
@@ -359,62 +361,52 @@ export function createThemeStore<T extends ThemeStoreConfig>(
 	return new ThemeStore<T>(config, options)
 }
 
-const restoreThemesString = (({
-	key,
-	config,
-}: {
-	key: string
-	config: ThemeStoreConfig
-}) => {
-	const persistedThemes = JSON.parse(
-		localStorage.getItem(key) || '{"themes":{}}',
-	).themes
+const restoreScript = (
+	params: Array<[string, ThemeStoreConfig, Listener<any>]>,
+) => {
+	params.forEach(([key, config, handler]) => {
+		const persistedThemes =
+			JSON.parse(localStorage.getItem(key) || '{}').themes ?? {}
 
-	return Object.entries(config).reduce<{
-		themes: Record<string, ThemeValue>
-		resolvedThemes: Record<string, ThemeValue>
-	}>(
-		(acc, [themeKey, themeConfig]) => {
-			const options = themeConfig.options
+		handler(
+			Object.entries(config).reduce<{
+				themes: Record<string, ThemeValue>
+				resolvedThemes: Record<string, ThemeValue>
+			}>(
+				(acc, [themeKey, themeConfig]) => {
+					const options = themeConfig.options
 
-			const firstOption = options?.[0]
+					const firstOption = options?.[0]
 
-			const initialValue =
-				persistedThemes[themeKey] ??
-				themeConfig.initialValue ??
-				(typeof firstOption === 'object' ? firstOption.value : firstOption!)
+					const currentValue =
+						persistedThemes[themeKey] ??
+						themeConfig.initialValue ??
+						(typeof firstOption === 'object' ? firstOption.value : firstOption!)
 
-			acc.themes[themeKey] = initialValue
+					acc.resolvedThemes[themeKey] = acc.themes[themeKey] = currentValue
 
-			if (options) {
-				const mediaOption = options.find(
-					(option): option is Required<ThemeOption> =>
-						typeof option === 'object' &&
-						!!option.media &&
-						option.value === initialValue,
-				)
+					const maybeSystemOption = options?.find(
+						(option): option is Required<ThemeOption> =>
+							typeof option === 'object' &&
+							!!option.media &&
+							option.value === currentValue,
+					)
 
-				if (mediaOption) {
-					const [mediaQuery, ifMatch, ifNotMatch] = mediaOption.media
+					if (maybeSystemOption) {
+						const [mediaQuery, ifMatch, ifNotMatch] = maybeSystemOption.media
 
-					acc.resolvedThemes[themeKey] = matchMedia(mediaQuery).matches
-						? ifMatch
-						: ifNotMatch
-				} else {
-					acc.resolvedThemes[themeKey] = initialValue
-				}
-			} else {
-				acc.resolvedThemes[themeKey] = initialValue
-			}
+						acc.resolvedThemes[themeKey] = matchMedia(mediaQuery).matches
+							? ifMatch
+							: ifNotMatch
+					}
 
-			return acc
-		},
-		{
-			themes: {},
-			resolvedThemes: {},
-		},
-	)
-}).toString()
+					return acc
+				},
+				{ themes: {}, resolvedThemes: {} },
+			),
+		)
+	})
+}
 
 export type ThemeScriptParameter = {
 	/** `localStorage` key; defaults to the 'resonare'. */
@@ -434,14 +426,16 @@ export type ThemeScriptParameter = {
  * const inlineScript = createInlineThemeScript([
  *   {
  *     key: 'my-app',
- *     config: { options: ['light', 'dark'] },
+ *     config: {
+ *       colorMode: { options: ['light', 'dark'] },
+ *     },
  *     handler: ({ resolvedThemes }) => {
- *       document.documentElement.dataset.mode = String(resolvedThemes.mode)
+ *       document.documentElement.dataset.colorMode = String(
+ *         resolvedThemes.colorMode,
+ *       )
  *     },
  *   },
  * ])
- *
- * <script>{inlineScript}</script>
  * ```
  */
 export function createInlineThemeScript(
@@ -449,8 +443,8 @@ export function createInlineThemeScript(
 ) {
 	const serializedThemeScriptParameters = themeScriptParameters.map(
 		({ key = PACKAGE_NAME, config, handler }) =>
-			`{key:${JSON.stringify(key)},config:${JSON.stringify(config)},h:${handler.toString()}}`,
+			`[${JSON.stringify(key)},${JSON.stringify(config)},${handler}]`,
 	)
 
-	return `(()=>{var r=${restoreThemesString};[${serializedThemeScriptParameters.join(',')}].forEach((c)=>c.h(r(c)))})()`
+	return `(${restoreScript})([${serializedThemeScriptParameters.join(',')}])`
 }

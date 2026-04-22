@@ -1,6 +1,6 @@
 {
 	"name": "resonare",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "Resonare",
 	"keywords": [
 		"theming",
@@ -40,21 +40,21 @@
 		"react-compiler-runtime": "1.0.0"
 	},
 	"devDependencies": {
-		"@rolldown/plugin-babel": "0.2.2",
-		"@size-limit/preset-small-lib": "12.0.1",
-		"@types/node": "25.5.2",
+		"@rolldown/plugin-babel": "0.2.3",
+		"@size-limit/preset-small-lib": "12.1.0",
+		"@types/node": "25.6.0",
 		"@types/react": "19.2.14",
 		"@vitejs/plugin-react": "6.0.1",
 		"babel-plugin-react-compiler": "1.0.0",
 		"cross-env": "10.1.0",
-		"jsdom": "29.0.1",
-		"react": "19.2.4",
-		"react-dom": "19.2.4",
-		"size-limit": "12.0.1",
-		"tsdown": "0.21.7",
-		"typescript": "6.0.2",
-		"vite": "8.0.3",
-		"vitest": "4.1.2"
+		"jsdom": "29.0.2",
+		"react": "19.2.5",
+		"react-dom": "19.2.5",
+		"size-limit": "12.1.0",
+		"tsdown": "0.21.9",
+		"typescript": "6.0.3",
+		"vite": "8.0.9",
+		"vitest": "4.1.5"
 	},
 	"peerDependencies": {
 		"react": "^18.0.0 || ^19.0.0"

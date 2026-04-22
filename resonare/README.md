@@ -267,16 +267,23 @@ export const themeScript = createInlineThemeScript([PARAM])
 
 const themeStore = createThemeStore(PARAM.config)
 
-if (typeof window !== 'undefined') {
-  themeStore.subscribe(PARAM.handler)
-
-  themeStore.restore()
-
-  themeStore.sync()
-}
 
 function ThemeSelect() {
   const { themes, setThemes } = useResonare(themeStore)
+
+  React.useEffect(() => {
+    const unsubscribe = subscribe(PARAM.handler)
+
+    const stopSync = sync()
+
+    restore()
+
+    return () => {
+      stopSync?.()
+
+      unsubscribe()
+    }
+  }, [subscribe, restore, sync])
 
   return getThemesAndOptions(PARAM.config).map(([theme, options]) => (
     <div key={theme}>
@@ -344,9 +351,9 @@ export function ThemeSelect({ persistedStateFromDb }) {
     const stopSync = sync()
 
     return () => {
-      unsubscribe()
-
       stopSync?.()
+
+      unsubscribe()
     }
   }, [subscribe, sync])
 
