@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"allowJs": true,
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"lib": ["ES2023", "DOM", "DOM.Iterable"],
 		"checkJs": true,
 		"esModuleInterop": true,
 		"exactOptionalPropertyTypes": true,
@@ -25,7 +25,7 @@
 		"rootDir": "./",
 		"skipLibCheck": true,
 		"strict": true,
-		"target": "ESNext",
+		"target": "ES2023",
 		"types": ["vitest/jsdom"],
 		"verbatimModuleSyntax": true
 	},

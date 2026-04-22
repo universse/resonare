@@ -12,6 +12,7 @@ declare global {
 
 const define = {
 	DEBUG: process.env.CI ? 'false' : 'true',
+	PROD: 'process.env.NODE_ENV === "production"',
 }
 
 export default defineConfig([
@@ -22,6 +23,7 @@ export default defineConfig([
 		},
 
 		platform: 'neutral',
+		target: 'ES2023',
 		plugins: [
 			react(),
 			babel({

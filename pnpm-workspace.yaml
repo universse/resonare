@@ -2,5 +2,9 @@ packages:
   - demo
   - resonare
 
-onlyBuiltDependencies:
-  - workerd
+allowBuilds:
+  esbuild: false
+  sharp: false
+  workerd: true
+
+minimumReleaseAge: 0

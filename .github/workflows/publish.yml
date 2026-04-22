@@ -18,11 +18,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 2
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v6
         with:
@@ -36,14 +36,22 @@ jobs:
         run: npm install -g npm@latest
 
       - name: Install dependencies
-        run: pnpm i --ignore-scripts
+        run: pnpm i --frozen-lockfile --ignore-scripts
+
+      - uses: infisical/secrets-action@v1.0.15
+        with:
+          method: oidc
+          domain: https://app.infisical.com
+          project-slug: resonare
+          env-slug: prod
+          identity-id: e783897d-2572-434c-bc59-d673fae68eda
 
       - name: Build & deploy
         run: |
           pnpm turbo deploy
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        # env:
+        #   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        #   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Publish
         id: changesets

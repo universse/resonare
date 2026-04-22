@@ -5,12 +5,12 @@
 	"scripts": {
 		"build": "astro build",
 		"deploy": "wrangler deploy",
-		"dev": "astro dev --port 3000"
+		"dev": "portless demo.resonare astro dev"
 	},
 	"dependencies": {
 		"astro": "5.17.3",
-		"react": "19.2.4",
-		"react-dom": "19.2.4",
+		"react": "19.2.5",
+		"react-dom": "19.2.5",
 		"resonare": "workspace:*"
 	},
 	"devDependencies": {
@@ -18,7 +18,8 @@
 		"@astrojs/react": "4.4.2",
 		"@types/react": "19.2.14",
 		"@types/react-dom": "19.2.3",
-		"typescript": "6.0.2",
-		"wrangler": "4.80.0"
+		"portless": "0.10.3",
+		"typescript": "6.0.3",
+		"wrangler": "4.84.0"
 	}
 }

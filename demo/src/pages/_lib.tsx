@@ -57,18 +57,25 @@ const themeStore = createThemeStore(PARAM.config, {
 	storage: localStorageAdapter({ key: PARAM.key }),
 })
 
-if (typeof window !== 'undefined') {
-	themeStore.subscribe(PARAM.handler)
-
-	themeStore.restore()
-
-	themeStore.sync()
-}
-
 export function ThemeSelect() {
-	const { themes, setThemes } = useResonare(themeStore)
+	const { themes, setThemes, subscribe, sync, restore } =
+		useResonare(themeStore)
 
 	const themesAndOptions = getThemesAndOptions(PARAM.config)
+
+	React.useEffect(() => {
+		const unsubscribe = subscribe(PARAM.handler)
+
+		const stopSync = sync()
+
+		restore()
+
+		return () => {
+			stopSync?.()
+
+			unsubscribe()
+		}
+	}, [subscribe, restore, sync])
 
 	return (
 		<div className='theme-select'>
