@@ -361,43 +361,39 @@ export function createThemeStore<T extends ThemeStoreConfig>(
 	return new ThemeStore<T>(config, options)
 }
 
-const restoreScript = (
-	params: Array<[string, ThemeStoreConfig, Listener<any>]>,
+const restoreScript = <T extends ThemeValue>(
+	params: Array<
+		[string, Array<[string, T] | [string, T, T, string, T, T]>, Listener<any>]
+	>,
 ) => {
-	params.forEach(([key, config, handler]) => {
+	params.forEach(([key, flattenedConfig, handler]) => {
 		const persistedThemes =
 			JSON.parse(localStorage.getItem(key) || '{}').themes ?? {}
 
 		handler(
-			Object.entries(config).reduce<{
+			flattenedConfig.reduce<{
 				themes: Record<string, ThemeValue>
 				resolvedThemes: Record<string, ThemeValue>
 			}>(
-				(acc, [themeKey, themeConfig]) => {
-					const options = themeConfig.options
-
-					const firstOption = options?.[0]
-
-					const currentValue =
-						persistedThemes[themeKey] ??
-						themeConfig.initialValue ??
-						(typeof firstOption === 'object' ? firstOption.value : firstOption!)
+				(
+					acc,
+					[
+						themeKey,
+						initial,
+						systemOptionValue,
+						mediaQuery,
+						ifMatch,
+						ifNotMatch,
+					],
+				) => {
+					const currentValue = persistedThemes[themeKey] ?? initial
 
 					acc.resolvedThemes[themeKey] = acc.themes[themeKey] = currentValue
 
-					const maybeSystemOption = options?.find(
-						(option): option is Required<ThemeOption> =>
-							typeof option === 'object' &&
-							!!option.media &&
-							option.value === currentValue,
-					)
-
-					if (maybeSystemOption) {
-						const [mediaQuery, ifMatch, ifNotMatch] = maybeSystemOption.media
-
-						acc.resolvedThemes[themeKey] = matchMedia(mediaQuery).matches
-							? ifMatch
-							: ifNotMatch
+					if (currentValue === systemOptionValue) {
+						acc.resolvedThemes[themeKey] = matchMedia(mediaQuery!).matches
+							? ifMatch!
+							: ifNotMatch!
 					}
 
 					return acc
@@ -412,7 +408,7 @@ export type ThemeScriptParameter = {
 	/** `localStorage` key; defaults to the 'resonare'. */
 	key?: string
 	config: ThemeStoreConfig
-	handler: Listener<ThemeStoreConfig>
+	handler: Listener<any>
 }
 
 /**
@@ -441,10 +437,44 @@ export type ThemeScriptParameter = {
 export function createInlineThemeScript(
 	themeScriptParameters: Array<ThemeScriptParameter>,
 ) {
-	const serializedThemeScriptParameters = themeScriptParameters.map(
-		({ key = PACKAGE_NAME, config, handler }) =>
-			`[${JSON.stringify(key)},${JSON.stringify(config)},${handler}]`,
+	const serializedArgs = themeScriptParameters.map(
+		({ key = PACKAGE_NAME, config, handler }) => {
+			const flattenedConfig = Object.entries(config).map(
+				([themeKey, { options, initialValue }]) => {
+					const firstOption = options?.[0]
+
+					const resolvedInitialValue =
+						initialValue ??
+						(typeof firstOption === 'object' ? firstOption.value : firstOption!)
+
+					const systemOption = options?.find(
+						(option): option is Required<ThemeOption> =>
+							typeof option === 'object' && !!option.media,
+					)
+
+					if (systemOption) {
+						const {
+							value,
+							media: [mediaQuery, ifMatch, ifNotMatch],
+						} = systemOption
+
+						return [
+							themeKey,
+							resolvedInitialValue,
+							value,
+							mediaQuery,
+							ifMatch,
+							ifNotMatch,
+						]
+					}
+
+					return [themeKey, resolvedInitialValue]
+				},
+			)
+
+			return `['${key}', ${JSON.stringify(flattenedConfig)}, ${handler}]`
+		},
 	)
 
-	return `(${restoreScript})([${serializedThemeScriptParameters.join(',')}])`
+	return `(${restoreScript})([${serializedArgs}])`
 }

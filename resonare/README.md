@@ -75,7 +75,7 @@ Inject the script into the `<head>` of your HTML document. The exact pattern dif
 
 ```tsx
 // React.js
-<script>{themeScript}</script>
+<script suppressHydrationWarning>{themeScript}</script>
 
 // TanStack Router/Start
 import { ScriptOnce } from '@tanstack/router'
