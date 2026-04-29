@@ -1,6 +1,6 @@
 # Resonare [![Version](https://img.shields.io/npm/v/resonare.svg?labelColor=black&color=blue)](https://www.npmjs.com/package/resonare)
 
- A state store for multi-dimensional themes and user preferences. 
+ A state store for multi-dimensional themes and user preferences. [Check out the demo](https://resonare.universse.workers.dev).
 
 ## Features
 
@@ -18,10 +18,6 @@
 - Flexible client-side persistence options, defaulting to localStorage
 - Support server-side persistence
 - Type-safe
-
-## Demo
-
-[Check it out](https://resonare.universse.workers.dev).
 
 ## Installation
 

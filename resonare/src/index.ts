@@ -130,6 +130,7 @@ export function getDefaultThemes<T extends ThemeStoreConfig>(config: T) {
 
 class ThemeStore<T extends ThemeStoreConfig> {
 	#defaultThemes: Themes<T>
+
 	#currentThemes: Themes<T>
 
 	#keyedConfig: KeyedThemeStoreConfig<T>
@@ -138,9 +139,9 @@ class ThemeStore<T extends ThemeStoreConfig> {
 
 	#storage: StorageAdapter | null
 
-	#listeners: Set<Listener<T>> = new Set<Listener<T>>()
+	#mediaQueryCache: Record<string, MediaQueryList> = {}
 
-	#mediaQueryCache: Record<string, MediaQueryList>
+	#listeners: Set<Listener<T>> = new Set<Listener<T>>()
 
 	#abortController = new AbortController()
 
@@ -151,15 +152,17 @@ class ThemeStore<T extends ThemeStoreConfig> {
 			storage = localStorageAdapter({ key: PACKAGE_NAME }),
 		}: ThemeStoreOptions<T> = {},
 	) {
-		const systemOptions: Record<string, [ThemeValue, ThemeValue]> = {
-			...initialState.systemOptions,
-		}
+		const systemOptions: Record<string, [ThemeValue, ThemeValue]> = {}
 
-		const keyedConfig = Object.fromEntries(
+		this.#defaultThemes = getDefaultThemes(config)
+
+		this.#currentThemes = { ...this.#defaultThemes, ...initialState.themes }
+
+		this.#keyedConfig = Object.fromEntries(
 			Object.entries(config).map(([themeKey, themeConfig]) => {
 				const entries = (themeConfig.options || []).map((option) => {
 					if (typeof option === 'object') {
-						if (option.media && !Object.hasOwn(systemOptions, themeKey)) {
+						if (option.media) {
 							systemOptions[themeKey] = [option.media[1], option.media[2]]
 						}
 
@@ -168,24 +171,17 @@ class ThemeStore<T extends ThemeStoreConfig> {
 
 					return [String(option), { value: option }]
 				})
+
 				return [themeKey, Object.fromEntries(entries)]
 			}),
 		) as KeyedThemeStoreConfig<T>
 
-		this.#keyedConfig = keyedConfig
-
-		this.#systemOptions = systemOptions as SystemOptions<T>
-
-		this.#defaultThemes = getDefaultThemes(config)
-
-		this.#currentThemes = { ...this.#defaultThemes, ...initialState.themes }
+		this.#systemOptions = { ...systemOptions, ...initialState.systemOptions }
 
 		this.#storage =
 			storage?.({
 				abortController: this.#abortController,
 			}) ?? null
-
-		this.#mediaQueryCache = {}
 	}
 
 	getThemes = (): Themes<T> => {
@@ -193,7 +189,16 @@ class ThemeStore<T extends ThemeStoreConfig> {
 	}
 
 	getResolvedThemes = (): Themes<T> => {
-		return this.#resolveThemes()
+		return Object.fromEntries(
+			Object.entries(this.#currentThemes).map(([themeKey, optionKey]) => {
+				const option = this.#keyedConfig[themeKey]?.[optionKey]
+
+				return [
+					themeKey,
+					option ? this.#resolveThemeOption({ themeKey, option }) : optionKey,
+				]
+			}),
+		) as Themes<T>
 	}
 
 	setThemes = (
@@ -278,20 +283,13 @@ class ThemeStore<T extends ThemeStoreConfig> {
 
 	#setThemesAndNotify = (themes: Themes<T>): void => {
 		this.#currentThemes = themes
-		this.#notify()
-	}
 
-	#resolveThemes = (): Themes<T> => {
-		return Object.fromEntries(
-			Object.entries(this.#currentThemes).map(([themeKey, optionKey]) => {
-				const option = this.#keyedConfig[themeKey]?.[optionKey]
-
-				return [
-					themeKey,
-					option ? this.#resolveThemeOption({ themeKey, option }) : optionKey,
-				]
-			}),
-		) as Themes<T>
+		for (const listener of this.#listeners) {
+			listener({
+				themes: this.#currentThemes,
+				resolvedThemes: this.getResolvedThemes(),
+			})
+		}
 	}
 
 	#resolveThemeOption = ({
@@ -319,12 +317,14 @@ class ThemeStore<T extends ThemeStoreConfig> {
 			return option.value
 		}
 
+		const cache = this.#mediaQueryCache
+
 		const [mediaQuery] = option.media
 
-		if (!this.#mediaQueryCache[mediaQuery]) {
+		if (!cache[mediaQuery]) {
 			const mediaQueryList = window.matchMedia(mediaQuery)
 
-			this.#mediaQueryCache[mediaQuery] = mediaQueryList
+			cache[mediaQuery] = mediaQueryList
 
 			mediaQueryList.addEventListener(
 				'change',
@@ -339,16 +339,7 @@ class ThemeStore<T extends ThemeStoreConfig> {
 
 		const [ifMatch, ifNotMatch] = this.#systemOptions[themeKey]!
 
-		return this.#mediaQueryCache[mediaQuery].matches ? ifMatch : ifNotMatch
-	}
-
-	#notify = (): void => {
-		for (const listener of this.#listeners) {
-			listener({
-				themes: this.#currentThemes,
-				resolvedThemes: this.#resolveThemes(),
-			})
-		}
+		return cache[mediaQuery].matches ? ifMatch : ifNotMatch
 	}
 }
 
@@ -435,46 +426,48 @@ export type ThemeScriptParameter = {
  * ```
  */
 export function createInlineThemeScript(
-	themeScriptParameters: Array<ThemeScriptParameter>,
+	themeScriptParameters: ThemeScriptParameter | Array<ThemeScriptParameter>,
 ) {
-	const serializedArgs = themeScriptParameters.map(
-		({ key = PACKAGE_NAME, config, handler }) => {
-			const flattenedConfig = Object.entries(config).map(
-				([themeKey, { options, initialValue }]) => {
-					const firstOption = options?.[0]
+	const serializedArgs = (
+		Array.isArray(themeScriptParameters)
+			? themeScriptParameters
+			: [themeScriptParameters]
+	).map(({ key = PACKAGE_NAME, config, handler }) => {
+		const flattenedConfig = Object.entries(config).map(
+			([themeKey, { options, initialValue }]) => {
+				const firstOption = options?.[0]
 
-					const resolvedInitialValue =
-						initialValue ??
-						(typeof firstOption === 'object' ? firstOption.value : firstOption!)
+				const resolvedInitialValue =
+					initialValue ??
+					(typeof firstOption === 'object' ? firstOption.value : firstOption!)
 
-					const systemOption = options?.find(
-						(option): option is Required<ThemeOption> =>
-							typeof option === 'object' && !!option.media,
-					)
+				const systemOption = options?.find(
+					(option): option is Required<ThemeOption> =>
+						typeof option === 'object' && !!option.media,
+				)
 
-					if (systemOption) {
-						const {
-							value,
-							media: [mediaQuery, ifMatch, ifNotMatch],
-						} = systemOption
+				if (systemOption) {
+					const {
+						value,
+						media: [mediaQuery, ifMatch, ifNotMatch],
+					} = systemOption
 
-						return [
-							themeKey,
-							resolvedInitialValue,
-							value,
-							mediaQuery,
-							ifMatch,
-							ifNotMatch,
-						]
-					}
+					return [
+						themeKey,
+						resolvedInitialValue,
+						value,
+						mediaQuery,
+						ifMatch,
+						ifNotMatch,
+					]
+				}
 
-					return [themeKey, resolvedInitialValue]
-				},
-			)
+				return [themeKey, resolvedInitialValue]
+			},
+		)
 
-			return `['${key}', ${JSON.stringify(flattenedConfig)}, ${handler}]`
-		},
-	)
+		return `['${key}', ${JSON.stringify(flattenedConfig)}, ${handler}]`
+	})
 
 	return `(${restoreScript})([${serializedArgs}])`
 }
