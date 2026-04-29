@@ -13,7 +13,7 @@
 - Framework-agnostic
 - Prevent flicker on page load
 - Honor system preferences
-- Create sections with independent theming
+- Support sections with independent theming
 - Sync theme selection across tabs and windows
 - Flexible client-side persistence options, defaulting to localStorage
 - Support server-side persistence
@@ -53,16 +53,14 @@ const CONFIG = {
   },
 } as const satisfies ThemeStoreConfig
 
-export const themeScript = createInlineThemeScript([
-  {
-    config: CONFIG,
-    handler: ({ resolvedThemes }) => {
-      Object.entries(resolvedThemes).forEach(([key, value]) => {
-        document.documentElement.dataset[key] = value
-      })
-    },
+export const themeScript = createInlineThemeScript({
+  config: CONFIG,
+  handler: ({ resolvedThemes }) => {
+    Object.entries(resolvedThemes).forEach(([key, value]) => {
+      document.documentElement.dataset[key] = value
+    })
   },
-])
+})
 ```
 
 ### 2. Inject inline script
@@ -197,16 +195,14 @@ const CONFIG = {
   },
 } as const satisfies ThemeStoreConfig
 
-const script = createInlineThemeScript([
-  {
-    config: CONFIG,
-    handler: ({ resolvedThemes }) => {
-      Object.entries(resolvedThemes).forEach(([key, value]) => {
-        document.documentElement.dataset[key] = value
-      })
-    },
+const script = createInlineThemeScript({
+  config: CONFIG,
+  handler: ({ resolvedThemes }) => {
+    Object.entries(resolvedThemes).forEach(([key, value]) => {
+      document.documentElement.dataset[key] = value
+    })
   },
-])
+})
 ```
 
 ## Framework Integration
@@ -259,7 +255,7 @@ const PARAM = {
   },
 } as const satisfies ThemeScriptParameter
 
-export const themeScript = createInlineThemeScript([PARAM])
+export const themeScript = createInlineThemeScript(PARAM)
 
 const themeStore = createThemeStore(PARAM.config)
 

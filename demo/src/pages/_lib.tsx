@@ -43,7 +43,7 @@ const PARAM = {
 	},
 } as const satisfies ThemeScriptParameter
 
-export const themeScript = createInlineThemeScript([PARAM])
+export const themeScript = createInlineThemeScript(PARAM)
 
 const THEME_LABELS = {
 	color: 'color',

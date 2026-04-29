@@ -32,7 +32,6 @@ export default defineConfig([
 		],
 
 		clean: true,
-		minify: !!process.env.CI,
 		define,
 	},
 ])

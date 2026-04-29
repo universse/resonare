@@ -29,7 +29,8 @@ export function useResonare<T extends ThemeStoreConfig>(store: ThemeStore<T>) {
 
 	return {
 		themes,
-		resolvedThemes: getResolvedThemes(),
+		// @ts-expect-error - workaround for React compiler as getResolvedThemes is not called again without 'themes' dependency
+		resolvedThemes: getResolvedThemes(themes),
 		destroy,
 		restore,
 		setThemes,
