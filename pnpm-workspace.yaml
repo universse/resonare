@@ -7,4 +7,12 @@ allowBuilds:
   sharp: false
   workerd: true
 
-minimumReleaseAge: 0
+minimumReleaseAge: 10080 # 7 days
+minimumReleaseAgeIgnoreMissingTime: false
+minimumReleaseAgeStrict: true
+
+blockExoticSubdeps: true
+savePrefix: ''
+
+trustPolicy: no-downgrade
+trustPolicyIgnoreAfter: 43200 # 30 days

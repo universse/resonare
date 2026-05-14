@@ -1,6 +1,6 @@
 {
 	"name": "resonare",
-	"version": "0.1.5",
+	"version": "0.1.6",
 	"description": "Resonare",
 	"keywords": [
 		"theming",
@@ -33,7 +33,7 @@
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsdown --watch",
-		"size": "cross-env CI=true pnpm build && size-limit",
+		"size": "pnpm build && size-limit",
 		"test": "vitest"
 	},
 	"dependencies": {

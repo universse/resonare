@@ -10,10 +10,7 @@ declare global {
 	}
 }
 
-const define = {
-	DEBUG: process.env.CI ? 'false' : 'true',
-	PROD: 'process.env.NODE_ENV === "production"',
-}
+const isCI = !!process.env.CI
 
 export default defineConfig([
 	{
@@ -32,6 +29,9 @@ export default defineConfig([
 		],
 
 		clean: true,
-		define,
+		minify: isCI,
+		define: {
+			DEBUG: isCI ? 'false' : 'true',
+		},
 	},
 ])

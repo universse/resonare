@@ -18,13 +18,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 2
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@v6.0.7
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6.4.0
         with:
           cache: pnpm
           node-version: lts/*
@@ -38,7 +38,7 @@ jobs:
       - name: Install dependencies
         run: pnpm i --frozen-lockfile --ignore-scripts
 
-      - uses: infisical/secrets-action@v1.0.15
+      - uses: infisical/secrets-action@v1.0.16
         with:
           method: oidc
           domain: https://app.infisical.com

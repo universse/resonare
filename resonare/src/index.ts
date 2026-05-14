@@ -308,12 +308,6 @@ class ThemeStore<T extends ThemeStoreConfig> {
 				typeof window.document.createElement !== 'undefined'
 			)
 		) {
-			if (!PROD) {
-				console.warn(
-					`[${PACKAGE_NAME}] Option with key "media" cannot be resolved in server environment.`,
-				)
-			}
-
 			return option.value
 		}
 

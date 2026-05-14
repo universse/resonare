@@ -8,13 +8,13 @@
 		"dev": "portless demo.resonare astro dev"
 	},
 	"dependencies": {
-		"astro": "5.17.3",
+		"astro": "5.18.1",
 		"react": "19.2.5",
 		"react-dom": "19.2.5",
 		"resonare": "workspace:*"
 	},
 	"devDependencies": {
-		"@astrojs/cloudflare": "12.6.12",
+		"@astrojs/cloudflare": "12.6.13",
 		"@astrojs/react": "4.4.2",
 		"@types/react": "19.2.14",
 		"@types/react-dom": "19.2.3",
